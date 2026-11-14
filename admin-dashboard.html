@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sabii - Premium Admin Dashboard</title>
+  <title>Sabii - Professional Admin Dashboard</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -64,14 +65,64 @@
       background: #C5A059;
       color: #FFFFFF;
     }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #FAF9F6; }
+    ::-webkit-scrollbar-thumb { background: #C5A059; border-radius: 10px; }
   </style>
 </head>
 <body class="flex flex-col min-h-screen text-stone-800">
 
-  <!-- Toast Container -->
+  <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- Top Admin Header -->
+  <!-- Product Upload Modal -->
+  <div id="product-modal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="sabii-card max-w-lg w-full rounded-3xl p-6 space-y-4 bg-white shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h3 class="text-base font-bold font-brand text-stone-800 flex items-center gap-2">
+          <i class="fa-solid fa-cloud-arrow-up text-sabii-gold"></i> Upload Dashboard Product
+        </h3>
+        <button onclick="closeProductModal()" class="w-8 h-8 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center hover:bg-stone-200 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="product-form" onsubmit="handleProductUpload(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Product Name</label>
+          <input type="text" id="p-name" placeholder="e.g. Luxury Smart Watch" required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Product Details / Description</label>
+          <textarea id="p-details" placeholder="High quality item with 20% discount..." rows="2" required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Old Price (Rs)</label>
+            <input type="number" id="p-oldprice" placeholder="2500" required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">New Price (Rs)</label>
+            <input type="number" id="p-newprice" placeholder="2000" required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Image URL</label>
+          <input type="url" id="p-image" placeholder="https://example.com/image.jpg" required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-700 mb-1">Daraz Affiliate / Buy Link</label>
+          <input type="url" id="p-link" placeholder="https://daraz.pk/products/..." required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+        </div>
+
+        <button type="submit" id="upload-btn" class="w-full py-3 rounded-xl sabii-button font-bold text-xs uppercase tracking-wider shadow-md mt-2">
+          Publish Product To Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Top Header -->
   <header class="bg-stone-900 border-b-2 border-sabii-gold text-white sticky top-0 z-40 shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -79,35 +130,40 @@
           S
         </div>
         <div>
-          <h1 class="font-brand text-xl font-bold text-sabii-lightgold leading-none">Sabii Admin Panel</h1>
-          <span class="text-[9px] text-stone-400 uppercase tracking-widest">Logged in as hk sabirkhansadre@gmail.com</span>
+          <h1 class="font-brand text-xl font-bold text-sabii-lightgold leading-none">Sabii Master Admin</h1>
+          <span class="text-[9px] text-stone-400 uppercase tracking-widest">Control Center</span>
         </div>
       </div>
-      <button onclick="adminLogout()" class="py-2 px-4 rounded-xl bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600 hover:text-white transition text-xs font-bold flex items-center gap-2">
-        <i class="fa-solid fa-power-off"></i> Logout
-      </button>
+      <div class="flex items-center gap-3">
+        <button onclick="openProductModal()" class="py-2 px-3.5 rounded-xl sabii-button font-bold text-xs shadow-md flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i> Upload Product
+        </button>
+        <a href="admin-login.html" class="py-2 px-3.5 rounded-xl bg-red-600/20 border border-red-500/40 text-red-400 hover:bg-red-600 hover:text-white transition text-xs font-bold flex items-center gap-2">
+          <i class="fa-solid fa-arrow-left"></i> Exit
+        </a>
+      </div>
     </div>
   </header>
 
-  <!-- Main Container with Sidebar & Content -->
+  <!-- Main Content Layout -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
     
-    <!-- Sidebar Navigation Buttons (Saare 12 Buttons) -->
+    <!-- Sidebar Menu (All Required Buttons) -->
     <aside class="w-full md:w-72 shrink-0 space-y-2">
       <div class="sabii-card rounded-2xl p-3 space-y-1 bg-white">
-        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-3 pb-2">Admin Control Menu</p>
+        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-3 pb-2">Admin Sections</p>
         
         <button onclick="switchTab('users')" id="btn-users" class="nav-btn active w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
-          <i class="fa-solid fa-users w-5 text-sabii-darkgold"><span></span></i> Users Management
+          <i class="fa-solid fa-users w-5 text-sabii-darkgold"></i> Users
         </button>
         <button onclick="switchTab('withdraw')" id="btn-withdraw" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
-          <i class="fa-solid fa-wallet w-5 text-sabii-darkgold"></i> Withdraw Requests
+          <i class="fa-solid fa-wallet w-5 text-sabii-darkgold"></i> Withdraw
         </button>
         <button onclick="switchTab('buy-product')" id="btn-buy-product" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
           <i class="fa-solid fa-bag-shopping w-5 text-sabii-darkgold"></i> Buy Product Earn 40
         </button>
         <button onclick="switchTab('free-product')" id="btn-free-product" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
-          <i class="fa-solid fa-gift w-5 text-sabii-darkgold"></i> Free Product Orders
+          <i class="fa-solid fa-gift w-5 text-sabii-darkgold"></i> Free Product
         </button>
         <button onclick="switchTab('vip-ads')" id="btn-vip-ads" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
           <i class="fa-solid fa-crown w-5 text-sabii-darkgold"></i> VIP Click Ads Proof
@@ -125,18 +181,18 @@
           <i class="fa-solid fa-envelope-open-text w-5 text-sabii-darkgold"></i> Gmail Selling
         </button>
         <button onclick="switchTab('referral')" id="btn-referral" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
-          <i class="fa-solid fa-user-group w-5 text-sabii-darkgold"></i> Referral Tracking
+          <i class="fa-solid fa-user-group w-5 text-sabii-darkgold"></i> Referral See
         </button>
         <button onclick="switchTab('free-product-proof')" id="btn-free-product-proof" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
           <i class="fa-solid fa-box-open w-5 text-sabii-darkgold"></i> Free Product Proof
         </button>
         <button onclick="switchTab('promotion')" id="btn-promotion" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
-          <i class="fa-solid fa-bullhorn w-5 text-sabii-darkgold"></i> Promotion Requests
+          <i class="fa-solid fa-bullhorn w-5 text-sabii-darkgold"></i> Promotion
         </button>
       </div>
     </aside>
 
-    <!-- Dynamic Content Panel -->
+    <!-- Content Table Section -->
     <section class="flex-grow sabii-card rounded-3xl p-6 bg-white space-y-4">
       <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
         <h2 id="panel-title" class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
@@ -145,22 +201,20 @@
         <span id="item-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
       </div>
 
-      <!-- Table Container -->
       <div id="panel-content" class="overflow-x-auto">
         <div class="text-center py-12 text-stone-400 text-xs">
           <i class="fa-solid fa-spinner fa-spin text-sabii-gold text-xl mb-2"></i>
-          <p>Loading database records...</p>
+          <p>Loading database...</p>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- Firebase Scripts & Admin Logic -->
+  <!-- Firebase Logic & Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, onValue, push, set, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC0ufsDkglGIXuU8Tj3wg4-yexoI6oxBm4",
@@ -173,7 +227,6 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getDatabase(app);
 
     let activeTab = 'users';
@@ -188,18 +241,42 @@
       setTimeout(() => toast.remove(), 4000);
     };
 
-    window.adminLogout = async function() {
-      await signOut(auth);
-      window.location.href = "admin-login.html";
+    window.openProductModal = function() {
+      document.getElementById('product-modal').classList.remove('hidden');
     };
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "admin-login.html";
-      } else {
-        loadTabData(activeTab);
+    window.closeProductModal = function() {
+      document.getElementById('product-modal').classList.add('hidden');
+    };
+
+    // Upload Product to Firebase (`admin/dashboardProducts`)
+    window.handleProductUpload = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('p-name').value;
+      const details = document.getElementById('p-details').value;
+      const oldPrice = document.getElementById('p-oldprice').value;
+      const newPrice = document.getElementById('p-newprice').value;
+      const image = document.getElementById('p-image').value;
+      const darazLink = document.getElementById('p-link').value;
+
+      const btn = document.getElementById('upload-btn');
+      btn.disabled = true;
+      btn.innerText = "Publishing...";
+
+      try {
+        const newProductRef = push(ref(db, 'admin/dashboardProducts'));
+        await set(newProductRef, { name, details, oldPrice, newPrice, image, darazLink, createdAt: Date.now() });
+        showToast("Product successfully dashboard par publish ho gaya!", "success");
+        closeProductModal();
+        document.getElementById('product-form').reset();
+      } catch (err) {
+        console.error(err);
+        showToast("Product publish karne me masla aya!", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Publish Product To Dashboard";
       }
-    });
+    };
 
     window.switchTab = function(tab) {
       activeTab = tab;
@@ -210,15 +287,15 @@
       const titles = {
         'users': 'Users Management',
         'withdraw': 'Withdraw Requests',
-        'buy-product': 'Buy Product Earn 40',
+        'buy-product': 'Buy Product Earn 40 Submissions',
         'free-product': 'Free Product Orders',
-        'vip-ads': 'VIP Click Ads Proof',
-        'video-proof': 'Video Watching Proof',
-        'simple-task': 'Simple Task Proof',
-        'jobs-proof': 'Jobs Proof',
-        'gmail-selling': 'Gmail Selling',
+        'vip-ads': 'VIP Click Ads Proofs',
+        'video-proof': 'Video Watching Proofs',
+        'simple-task': 'Simple Task Proofs',
+        'jobs-proof': 'Jobs Proofs',
+        'gmail-selling': 'Gmail Selling Requests',
         'referral': 'Referral Tracking',
-        'free-product-proof': 'Free Product Proof',
+        'free-product-proof': 'Free Product Proofs',
         'promotion': 'Promotion Requests'
       };
       document.getElementById('panel-title').innerHTML = `<i class="fa-solid fa-folder-open text-sabii-gold"></i> ${titles[tab] || tab}`;
@@ -255,8 +332,8 @@
         let count = 0;
         let html = `<table class="w-full text-left border-collapse text-xs"><thead><tr class="border-b border-stone-200 text-stone-400 uppercase text-[10px]">`;
 
-        if (tab === 'users') {
-          html += `<th class="py-3 px-3">Name</th><th class="py-3 px-3">Email</th><th class="py-3 px-3">Balance</th><th class="py-3 px-3">City</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
+        if (tab === 'users' || tab === 'referral') {
+          html += `<th class="py-3 px-3">Name</th><th class="py-3 px-3">Email</th><th class="py-3 px-3">Balance</th><th class="py-3 px-3">Referral Code</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
           snapshot.forEach((child) => {
             count++;
             const u = child.val();
@@ -265,14 +342,14 @@
               <td class="py-3 px-3 font-bold text-stone-800">${u.name || 'N/A'}</td>
               <td class="py-3 px-3 text-stone-600">${u.email || 'N/A'}</td>
               <td class="py-3 px-3 font-bold text-sabii-darkgold">Rs ${u.balance || 0}</td>
-              <td class="py-3 px-3 text-stone-500">${u.city || 'N/A'}</td>
-              <td class="py-3 px-3 text-right space-x-2">
-                <button onclick="editUserBalance('${uid}', ${u.balance || 0})" class="px-2.5 py-1.5 bg-amber-100 text-amber-800 rounded-lg font-bold hover:bg-amber-200"><i class="fa-solid fa-pen"></i> Edit Bal</button>
+              <td class="py-3 px-3 text-stone-500">${u.referralCode || 'N/A'} (Refs: ${u.totalReferrals || 0})</td>
+              <td class="py-3 px-3 text-right">
+                <button onclick="editBalance('${uid}', ${u.balance || 0})" class="px-2.5 py-1.5 bg-amber-100 text-amber-800 rounded-lg font-bold hover:bg-amber-200"><i class="fa-solid fa-pen"></i> Edit Bal</button>
               </td>
             </tr>`;
           });
         } else if (tab === 'withdraw') {
-          html += `<th class="py-3 px-3">User ID</th><th class="py-3 px-3">Amount</th><th class="py-3 px-3">Method / Details</th><th class="py-3 px-3">Status</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
+          html += `<th class="py-3 px-3">User ID</th><th class="py-3 px-3">Amount</th><th class="py-3 px-3">Details</th><th class="py-3 px-3">Status</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
           snapshot.forEach((child) => {
             count++;
             const w = child.val();
@@ -280,29 +357,28 @@
             html += `<tr class="border-b border-stone-100 hover:bg-stone-50">
               <td class="py-3 px-3 font-bold text-stone-800">${w.uid || 'N/A'}</td>
               <td class="py-3 px-3 font-bold text-sabii-darkgold">Rs ${w.amount || 0}</td>
-              <td class="py-3 px-3 text-stone-600">${w.method || 'JazzCash/EasyPaisa'} - ${w.accountNumber || ''}</td>
+              <td class="py-3 px-3 text-stone-600">${w.method || 'Account'} - ${w.accountNumber || ''}</td>
               <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${w.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${w.status || 'Pending'}</span></td>
               <td class="py-3 px-3 text-right space-x-1">
-                <button onclick="updateStatus('withdrawals', '${key}', 'Approved')" class="px-2 py-1 bg-emerald-600 text-white rounded font-bold">Approve</button>
-                <button onclick="updateStatus('withdrawals', '${key}', 'Rejected')" class="px-2 py-1 bg-red-600 text-white rounded font-bold">Reject</button>
+                <button onclick="updateStatus('withdrawals', '${key}', 'Approved')" class="px-2.5 py-1 bg-emerald-600 text-white rounded font-bold">Approve</button>
+                <button onclick="updateStatus('withdrawals', '${key}', 'Rejected')" class="px-2.5 py-1 bg-red-600 text-white rounded font-bold">Reject</button>
               </td>
             </tr>`;
           });
         } else {
-          // General Submissions / Proofs Table
-          html += `<th class="py-3 px-3">ID / User</th><th class="py-3 px-3">Details / Proof</th><th class="py-3 px-3">Status</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
+          html += `<th class="py-3 px-3">Record ID</th><th class="py-3 px-3">Proof / Details</th><th class="py-3 px-3">Status</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
           snapshot.forEach((child) => {
             count++;
             const item = child.val();
             const key = child.key;
-            const proofImg = item.photo || item.image ? `<a href="${item.photo || item.image}" target="_blank" class="text-sabii-darkgold underline font-bold"><i class="fa-solid fa-eye"></i> View Proof</a>` : 'No Image';
+            const img = item.image || item.photo ? `<a href="${item.image || item.photo}" target="_blank" class="text-sabii-darkgold underline font-bold"><i class="fa-solid fa-eye"></i> View Image</a>` : 'No Image';
             html += `<tr class="border-b border-stone-100 hover:bg-stone-50">
-              <td class="py-3 px-3 font-bold text-stone-800">${item.id || key}</td>
-              <td class="py-3 px-3 text-stone-600">${proofImg} - ${item.source || item.name || 'Task/Product'}</td>
+              <td class="py-3 px-3 font-bold text-stone-800">${key.substring(0, 8)}...</td>
+              <td class="py-3 px-3 text-stone-600">${img} - ${item.details || item.name || 'Submission'}</td>
               <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${item.status || 'Pending'}</span></td>
               <td class="py-3 px-3 text-right space-x-1">
-                <button onclick="approveAndReward('${tab}', '${key}', '${item.uid}', 40)" class="px-2.5 py-1 bg-emerald-600 text-white rounded font-bold">Approve & Reward</button>
-                <button onclick="deleteRecord('${dbPath}', '${key}')" class="px-2 py-1 bg-red-600 text-white rounded font-bold"><i class="fa-solid fa-trash"></i></button>
+                <button onclick="updateStatus('${dbPath}', '${key}', 'Approved')" class="px-2.5 py-1 bg-emerald-600 text-white rounded font-bold">Approve</button>
+                <button onclick="deleteRec('${dbPath}', '${key}')" class="px-2 py-1 bg-red-600 text-white rounded font-bold"><i class="fa-solid fa-trash"></i></button>
               </td>
             </tr>`;
           });
@@ -314,11 +390,11 @@
       }, { onlyOnce: true });
     }
 
-    window.editUserBalance = async function(uid, currentBal) {
-      const newBal = prompt("Enter new balance for user:", currentBal);
-      if (newBal !== null) {
-        await update(ref(db, `users/${uid}`), { balance: parseFloat(newBal) });
-        showToast("User balance updated successfully!", "success");
+    window.editBalance = async function(uid, currentBal) {
+      const val = prompt("Enter new balance:", currentBal);
+      if (val !== null) {
+        await update(ref(db, `users/${uid}`), { balance: parseFloat(val) });
+        showToast("Balance updated successfully!", "success");
         loadTabData(activeTab);
       }
     };
@@ -329,30 +405,16 @@
       loadTabData(activeTab);
     };
 
-    window.approveAndReward = async function(tab, key, uid, rewardAmount) {
-      let path = '';
-      if (tab === 'buy-product') path = 'admin/buyProductSubmissions';
-      else if (tab === 'vip-ads') path = 'admin/vipAdSubmissions';
-      else if (tab === 'gmail-selling') path = 'admin/gmailSubmissions';
-      else path = `admin/${tab}`;
-
-      await update(ref(db, `${path}/${key}`), { status: 'Approved', rewardCredited: true });
-      
-      if (uid) {
-        const userRef = ref(db, `users/${uid}`);
-        // Add balance logic here if required
-      }
-      showToast("Approved and reward processed!", "success");
-      loadTabData(activeTab);
-    };
-
-    window.deleteRecord = async function(path, key) {
-      if (confirm("Kya aap waqai is record ko delete karna chahte hain?")) {
+    window.deleteRec = async function(path, key) {
+      if (confirm("Delete this record?")) {
         await remove(ref(db, `${path}/${key}`));
         showToast("Record deleted!", "success");
         loadTabData(activeTab);
       }
     };
+
+    // Initial Load
+    loadTabData('users');
   </script>
 </body>
 </html>
