@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sabii - Admin Withdraw Management</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sabii: {
+              gold: '#C5A059',
+              lightgold: '#E5D3B3',
+              darkgold: '#A37F38',
+              accent: '#D4AF37',
+              bg: '#FFFFFF',
+            }
+          },
+          fontFamily: {
+            brand: ['Cormorant Garamond', 'serif'],
+            sans: ['Montserrat', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FAF9F6;
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+    }
+
+    .sabii-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(197, 160, 89, 0.2);
+      box-shadow: 0 10px 30px rgba(197, 160, 89, 0.05);
+    }
+
+    .sabii-gold-text {
+      background: linear-gradient(135deg, #A37F38 0%, #C5A059 50%, #D4AF37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sabii-button {
+      background: linear-gradient(135deg, #C5A059 0%, #D4AF37 50%, #A37F38 100%);
+      transition: all 0.3s ease;
+      color: #FFFFFF;
+    }
+
+    .sabii-button:hover {
+      box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #FAF9F6; }
+    ::-webkit-scrollbar-thumb { background: #C5A059; border-radius: 10px; }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen relative overflow-x-hidden text-stone-800">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- Header -->
+  <header class="bg-stone-900 border-b-2 border-sabii-gold text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-sabii-gold/20 border border-sabii-gold flex items-center justify-center text-sabii-lightgold font-brand font-bold text-xl">
+          S
+        </div>
+        <div>
+          <h1 class="font-brand text-xl font-bold text-sabii-lightgold leading-none">Withdraw Requests Control</h1>
+          <span class="text-[9px] text-stone-400 uppercase tracking-widest">Admin Panel</span>
+        </div>
+      </div>
+
+      <!-- Back to Admin Dashboard -->
+      <a href="admin-dashboard.html" class="py-2 px-3.5 rounded-xl bg-sabii-gold/20 border border-sabii-gold/40 text-sabii-lightgold hover:bg-sabii-gold hover:text-white transition-all text-xs font-bold flex items-center gap-1.5">
+        <i class="fa-solid fa-arrow-left"></i> Admin Dashboard
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-wallet text-sabii-gold"></i> All User Withdrawals
+        </h2>
+        <span id="withdraw-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
+      </div>
+
+      <!-- Withdraw Table Container -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-stone-200 text-stone-400 uppercase text-[10px]">
+              <th class="py-3 px-3">User & Account Name</th>
+              <th class="py-3 px-3">Method / Number</th>
+              <th class="py-3 px-3">Amount</th>
+              <th class="py-3 px-3">Status</th>
+              <th class="py-3 px-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="withdraw-table-body">
+            <tr>
+              <td colspan="5" class="text-center py-12 text-stone-400 text-xs">
+                <i class="fa-solid fa-spinner fa-spin text-sabii-gold text-xl mb-2"></i>
+                <p>Loading withdrawal requests...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="p-3 text-center border-t border-stone-100 bg-white text-[10px] text-stone-400 shadow-inner">
+    &copy; Sabii Application. Master Admin Panel.
+  </footer>
+
+  <!-- Firebase Logic & Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0ufsDkglGIXuU8Tj3wg4-yexoI6oxBm4",
+      authDomain: "sabi-3ea84.firebaseapp.com",
+      projectId: "sabi-3ea84",
+      storageBucket: "sabi-3ea84.firebasestorage.app",
+      messagingSenderId: "124632688151",
+      appId: "1:124632688151:web:b4804b0cc7f301d30d9e52",
+      measurementId: "G-837LHT24Y3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.showToast = function(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-stone-900 border-sabii-gold text-sabii-lightgold' : 'bg-red-900 border-red-500 text-white';
+      toast.className = `p-3.5 rounded-xl border ${bgColor} shadow-xl text-xs font-semibold flex items-center justify-between gap-3`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    };
+
+    // Fetch and Display Withdrawals in Real-time from `admin/withdrawals`
+    const withdrawalsRef = ref(db, 'admin/withdrawals');
+    onValue(withdrawalsRef, (snapshot) => {
+      const tbody = document.getElementById('withdraw-table-body');
+      const countEl = document.getElementById('withdraw-count');
+      tbody.innerHTML = "";
+
+      if (!snapshot.exists()) {
+        countEl.innerText = "0 Requests";
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-stone-400 text-xs">Koi withdrawal request mojood nahi hai.</td></tr>`;
+        return;
+      }
+
+      let count = 0;
+      snapshot.forEach((childSnap) => {
+        count++;
+        const w = childSnap.val();
+        const key = childSnap.key; // Unique withdraw ID
+        const uid = w.uid;
+
+        let statusClass = "bg-amber-100 text-amber-800";
+        if (w.status === 'Approved') statusClass = "bg-emerald-100 text-emerald-800";
+        else if (w.status === 'Rejected') statusClass = "bg-red-100 text-red-800";
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-3">
+            <span class="font-bold text-stone-800 block">${w.accountName || 'N/A'}</span>
+            <span class="text-[10px] text-stone-400">UID: ${uid ? uid.substring(0, 8) + '...' : 'N/A'}</span>
+          </td>
+          <td class="py-3 px-3">
+            <span class="font-semibold text-stone-700 block">${w.method || 'Method'}</span>
+            <span class="text-stone-500">${w.accountNumber || 'N/A'}</span>
+          </td>
+          <td class="py-3 px-3 font-bold text-sabii-darkgold text-sm">Rs ${w.amount || 0}</td>
+          <td class="py-3 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">
+              ${w.status || 'Pending'}
+            </span>
+          </td>
+          <td class="py-3 px-3 text-right space-x-1">
+            <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Approved')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
+              Approve
+            </button>
+            <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Rejected')" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
+              Reject
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      countEl.innerText = `${count} Requests`;
+    });
+
+    // Approve or Reject Function
+    window.updateWithdrawStatus = async function(withdrawKey, uid, newStatus) {
+      try {
+        // Update status in admin/withdrawals
+        await update(ref(db, `admin/withdrawals/${withdrawKey}`), { status: newStatus });
+        
+        // Update status in user's personal withdrawals record (`user_withdrawals/{uid}/{withdrawKey}`)
+        if (uid) {
+          await update(ref(db, `user_withdrawals/${uid}/${withdrawKey}`), { status: newStatus });
+        }
+
+        showToast(`Withdrawal request successfully ${newStatus.toLowerCase()} kar di gayi!`, "success");
+      } catch (err) {
+        console.error(err);
+        showToast("Status update karne me masla aya!", "error");
+      }
+    };
+  </script>
+</body>
+</html>
