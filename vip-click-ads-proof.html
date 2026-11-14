@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sabii - Admin VIP Click Ads Proof</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sabii: {
+              gold: '#C5A059',
+              lightgold: '#E5D3B3',
+              darkgold: '#A37F38',
+              accent: '#D4AF37',
+              bg: '#FAF9F6',
+            }
+          },
+          fontFamily: {
+            brand: ['Cormorant Garamond', 'serif'],
+            sans: ['Montserrat', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FAF9F6;
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+    }
+    .sabii-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(197, 160, 89, 0.25);
+      box-shadow: 0 10px 30px rgba(197, 160, 89, 0.06);
+    }
+    .sabii-gold-text {
+      background: linear-gradient(135deg, #A37F38 0%, #C5A059 50%, #D4AF37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .vip-header {
+      background: linear-gradient(135deg, #1C1917 0%, #44403C 50%, #1C1917 100%);
+      border-bottom: 2px solid #D4AF37;
+      color: #FFFFFF;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-stone-800">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- Image Modal Viewer -->
+  <div id="image-modal" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeImageModal()">
+    <div class="relative max-w-xl w-full bg-white rounded-3xl p-4 shadow-2xl text-center" onclick="event.stopPropagation()">
+      <button onclick="closeImageModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center font-bold">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 class="font-bold text-sm text-stone-800 mb-3">VIP Ad Screenshot Proof</h3>
+      <img id="modal-img" src="" alt="VIP Proof" class="max-h-[70vh] w-auto mx-auto rounded-xl border border-sabii-gold/30">
+    </div>
+  </div>
+
+  <!-- Top Header -->
+  <header class="vip-header sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-brand font-bold text-xl">
+          S
+        </div>
+        <div>
+          <h1 class="font-brand text-xl font-bold text-amber-300 leading-none">VIP Click Ads Proof Control</h1>
+          <span class="text-[9px] text-stone-300 uppercase tracking-widest">Master Admin Panel</span>
+        </div>
+      </div>
+      <a href="admin-dashboard.html" class="py-2 px-3.5 rounded-xl bg-stone-800 border border-amber-400/30 text-amber-300 hover:bg-stone-700 transition text-xs font-bold flex items-center gap-2">
+        <i class="fa-solid fa-arrow-left"></i> Dashboard
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    
+    <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-crown text-amber-500"></i> VIP Ad Submissions & Proofs
+        </h2>
+        <span id="proof-count" class="text-[10px] text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">Loading...</span>
+      </div>
+
+      <!-- Table Container -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-stone-200 text-stone-400 uppercase text-[10px]">
+              <th class="py-3 px-3">Screenshot</th>
+              <th class="py-3 px-3">Ad Info</th>
+              <th class="py-3 px-3">User UID</th>
+              <th class="py-3 px-3">Status</th>
+              <th class="py-3 px-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="proof-table-body">
+            <tr>
+              <td colspan="5" class="text-center py-12 text-stone-400 text-xs">
+                <i class="fa-solid fa-spinner fa-spin text-amber-500 text-xl mb-2"></i>
+                <p>Loading VIP submissions...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="p-3 text-center border-t border-stone-100 bg-white text-[10px] text-stone-400 shadow-inner">
+    &copy; Sabii Application. Master Admin Panel.
+  </footer>
+
+  <!-- Firebase Logic & Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, update, get, remove, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0ufsDkglGIXuU8Tj3wg4-yexoI6oxBm4",
+      authDomain: "sabi-3ea84.firebaseapp.com",
+      projectId: "sabi-3ea84",
+      storageBucket: "sabi-3ea84.firebasestorage.app",
+      messagingSenderId: "124632688151",
+      appId: "1:124632688151:web:b4804b0cc7f301d30d9e52",
+      measurementId: "G-837LHT24Y3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.showToast = function(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-stone-900 border-sabii-gold text-sabii-lightgold' : 'bg-red-900 border-red-500 text-white';
+      toast.className = `p-3.5 rounded-xl border ${bgColor} shadow-xl text-xs font-semibold flex items-center justify-between gap-3`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    };
+
+    window.openImageModal = function(url) {
+      document.getElementById('modal-img').src = url;
+      document.getElementById('image-modal').classList.remove('hidden');
+    };
+
+    window.closeImageModal = function() {
+      document.getElementById('image-modal').classList.add('hidden');
+    };
+
+    // Fetch Submissions from `admin/vipAdSubmissions`
+    const submissionsRef = ref(db, 'admin/vipAdSubmissions');
+    onValue(submissionsRef, (snapshot) => {
+      const tbody = document.getElementById('proof-table-body');
+      const countEl = document.getElementById('proof-count');
+      tbody.innerHTML = "";
+
+      if (!snapshot.exists()) {
+        countEl.innerText = "0 Submissions";
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-stone-400 text-xs">Koi VIP ad proof mojood nahi hai.</td></tr>`;
+        return;
+      }
+
+      let count = 0;
+      snapshot.forEach((childSnap) => {
+        count++;
+        const item = childSnap.val();
+        const key = childSnap.key;
+        const uid = item.uid;
+        const adKey = item.adId || `vip_ad_${item.adNumber}`;
+
+        let statusClass = "bg-amber-100 text-amber-800";
+        if (item.status === 'Approved') statusClass = "bg-emerald-100 text-emerald-800";
+        else if (item.status === 'Rejected') statusClass = "bg-red-100 text-red-800";
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-3">
+            <img src="${item.photo || 'https://via.placeholder.com/150'}" alt="Proof" class="w-12 h-12 rounded-xl object-cover border border-amber-400/40 cursor-pointer hover:scale-105 transition" onclick="openImageModal('${item.photo}')">
+          </td>
+          <td class="py-3 px-3">
+            <span class="font-bold text-stone-800 block">VIP Ad #${item.adNumber || 'N/A'}</span>
+            <span class="text-[10px] text-stone-400">${new Date(item.timestamp || Date.now()).toLocaleDateString()}</span>
+          </td>
+          <td class="py-3 px-3">
+            <span class="text-stone-700">UID: ${uid ? uid.substring(0, 10) + '...' : 'N/A'}</span>
+          </td>
+          <td class="py-3 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">
+              ${item.status || 'Pending'}
+            </span>
+          </td>
+          <td class="py-3 px-3 text-right space-x-1">
+            <button onclick="handleVipStatus('${key}', '${uid}', '${adKey}', 'Approved', ${item.rewardCredited || false})" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
+              Approve
+            </button>
+            <button onclick="handleVipStatus('${key}', '${uid}', '${adKey}', 'Rejected', true)" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold transition">
+              Reject
+            </button>
+            <button onclick="deleteVipSubmission('${key}', '${uid}', '${adKey}')" class="px-2 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      countEl.innerText = `${count} Submissions`;
+    });
+
+    // Approve / Reject Handler & Credit Rs 0.20
+    window.handleVipStatus = async function(key, uid, adKey, status, alreadyCredited) {
+      try {
+        await update(ref(db, `admin/vipAdSubmissions/${key}`), { status: status });
+        if (uid && adKey) {
+          await update(ref(db, `user_vip_submissions/${uid}/${adKey}`), { status: status });
+        }
+
+        // If Approved and reward not yet credited, add Rs 0.20 to user balance
+        if (status === 'Approved' && !alreadyCredited && uid) {
+          const userRef = ref(db, `users/${uid}`);
+          const userSnap = await get(userRef);
+          if (userSnap.exists()) {
+            const oldBal = parseFloat(userSnap.val().balance || 0);
+            const newBal = parseFloat((oldBal + 0.20).toFixed(2));
+            await update(userRef, { balance: newBal });
+
+            const earnRef = push(ref(db, `user_earnings/${uid}`));
+            await set(earnRef, {
+              source: `VIP Ad Reward`,
+              amount: 0.20,
+              timestamp: new Date().toISOString()
+            });
+          }
+
+          await update(ref(db, `admin/vipAdSubmissions/${key}`), { rewardCredited: true });
+          await update(ref(db, `user_vip_submissions/${uid}/${adKey}`), { rewardCredited: true });
+        }
+
+        showToast(`VIP submission successfully ${status.toLowerCase()} kar di gayi!`, "success");
+      } catch (err) {
+        console.error(err);
+        showToast("Status update karne me masla aya!", "error");
+      }
+    };
+
+    // Delete Submission
+    window.deleteVipSubmission = async function(key, uid, adKey) {
+      if (confirm("Kya aap is submission ko delete karna chahte hain?")) {
+        try {
+          await remove(ref(db, `admin/vipAdSubmissions/${key}`));
+          if (uid && adKey) {
+            await remove(ref(db, `user_vip_submissions/${uid}/${adKey}`));
+          }
+          showToast("Submission delete kar di gayi!", "success");
+        } catch (err) {
+          console.error(err);
+          showToast("Delete karne me masla aya!", "error");
+        }
+      }
+    };
+  </script>
+</body>
+</html>
