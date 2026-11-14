@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sabii - Admin Free Product Orders</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sabii: {
+              gold: '#C5A059',
+              lightgold: '#E5D3B3',
+              darkgold: '#A37F38',
+              accent: '#D4AF37',
+              bg: '#FAF9F6',
+            }
+          },
+          fontFamily: {
+            brand: ['Cormorant Garamond', 'serif'],
+            sans: ['Montserrat', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FAF9F6;
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+    }
+    .sabii-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(197, 160, 89, 0.25);
+      box-shadow: 0 10px 30px rgba(197, 160, 89, 0.06);
+    }
+    .sabii-gold-text {
+      background: linear-gradient(135deg, #A37F38 0%, #C5A059 50%, #D4AF37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sabii-button {
+      background: linear-gradient(135deg, #C5A059 0%, #D4AF37 50%, #A37F38 100%);
+      color: #FFFFFF;
+      transition: all 0.3s ease;
+    }
+    .sabii-button:hover {
+      box-shadow: 0 4px 15px rgba(197, 160, 89, 0.35);
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-stone-800">
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- Image Modal Viewer -->
+  <div id="image-modal" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeImageModal()">
+    <div class="relative max-w-xl w-full bg-white rounded-3xl p-4 shadow-2xl text-center" onclick="event.stopPropagation()">
+      <button onclick="closeImageModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center font-bold">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 class="font-bold text-sm text-stone-800 mb-3">Product Image</h3>
+      <img id="modal-img" src="" alt="Product Proof" class="max-h-[70vh] w-auto mx-auto rounded-xl border border-sabii-gold/30">
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-stone-900 border-b-2 border-sabii-gold text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-sabii-gold/20 border border-sabii-gold flex items-center justify-center text-sabii-lightgold font-brand font-bold text-xl">
+          S
+        </div>
+        <div>
+          <h1 class="font-brand text-xl font-bold text-sabii-lightgold leading-none">Free Product Orders Control</h1>
+          <span class="text-[9px] text-stone-400 uppercase tracking-widest">Admin Panel</span>
+        </div>
+      </div>
+      <a href="admin-dashboard.html" class="py-2 px-3.5 rounded-xl bg-sabii-gold/20 border border-sabii-gold/40 text-sabii-lightgold hover:bg-sabii-gold hover:text-white transition text-xs font-bold flex items-center gap-2">
+        <i class="fa-solid fa-arrow-left"></i> Dashboard
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    
+    <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-gift text-sabii-gold"></i> User Free Product Requests
+        </h2>
+        <span id="order-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
+      </div>
+
+      <!-- Table Container -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-stone-200 text-stone-400 uppercase text-[10px]">
+              <th class="py-3 px-3">Image</th>
+              <th class="py-3 px-3">User & Email</th>
+              <th class="py-3 px-3">Product Name & ID</th>
+              <th class="py-3 px-3">Details / Price</th>
+              <th class="py-3 px-3">Status</th>
+              <th class="py-3 px-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="orders-table-body">
+            <tr>
+              <td colspan="6" class="text-center py-12 text-stone-400 text-xs">
+                <i class="fa-solid fa-spinner fa-spin text-sabii-gold text-xl mb-2"></i>
+                <p>Loading orders...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="p-3 text-center border-t border-stone-100 bg-white text-[10px] text-stone-400 shadow-inner">
+    &copy; Sabii Application. Master Admin Panel.
+  </footer>
+
+  <!-- Firebase Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0ufsDkglGIXuU8Tj3wg4-yexoI6oxBm4",
+      authDomain: "sabi-3ea84.firebaseapp.com",
+      projectId: "sabi-3ea84",
+      storageBucket: "sabi-3ea84.firebasestorage.app",
+      messagingSenderId: "124632688151",
+      appId: "1:124632688151:web:b4804b0cc7f301d30d9e52",
+      measurementId: "G-837LHT24Y3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.showToast = function(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-stone-900 border-sabii-gold text-sabii-lightgold' : 'bg-red-900 border-red-500 text-white';
+      toast.className = `p-3.5 rounded-xl border ${bgColor} shadow-xl text-xs font-semibold flex items-center justify-between gap-3`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    };
+
+    window.openImageModal = function(url) {
+      document.getElementById('modal-img').src = url;
+      document.getElementById('image-modal').classList.remove('hidden');
+    };
+
+    window.closeImageModal = function() {
+      document.getElementById('image-modal').classList.add('hidden');
+    };
+
+    const ordersRef = ref(db, 'freeProductOrders');
+    onValue(ordersRef, (snapshot) => {
+      const tbody = document.getElementById('orders-table-body');
+      const countEl = document.getElementById('order-count');
+      tbody.innerHTML = "";
+
+      if (!snapshot.exists()) {
+        countEl.innerText = "0 Orders";
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-stone-400 text-xs">Koi free product order mojood nahi hai.</td></tr>`;
+        return;
+      }
+
+      let count = 0;
+      snapshot.forEach((childSnap) => {
+        count++;
+        const item = childSnap.val();
+        const key = childSnap.key;
+        const uid = item.uid;
+
+        let statusClass = "bg-amber-100 text-amber-800";
+        if (item.status === 'Approved') statusClass = "bg-emerald-100 text-emerald-800";
+        else if (item.status === 'Rejected') statusClass = "bg-red-100 text-red-800";
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-3">
+            <img src="${item.image}" alt="Product" class="w-12 h-12 rounded-xl object-cover border border-sabii-gold/35 cursor-pointer hover:scale-105 transition" onclick="openImageModal('${item.image}')">
+          </td>
+          <td class="py-3 px-3">
+            <span class="font-bold text-stone-800 block">${item.name || 'N/A'}</span>
+            <span class="text-[10px] text-stone-500">${item.email || 'N/A'}</span>
+          </td>
+          <td class="py-3 px-3">
+            <span class="font-bold text-stone-800 block">${item.productName || 'N/A'}</span>
+            <span class="text-[10px] text-stone-500">ID: ${item.productId || 'N/A'}</span>
+          </td>
+          <td class="py-3 px-3 font-bold text-sabii-darkgold">${item.details || 'N/A'}</td>
+          <td class="py-3 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">${item.status || 'Pending'}</span>
+          </td>
+          <td class="py-3 px-3 text-right space-x-1">
+            <button onclick="handleOrderStatus('${key}', '${uid}', 'Approved', '${item.details}')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
+              Approve & Deduct
+            </button>
+            <button onclick="handleOrderStatus('${key}', '${uid}', 'Rejected', '')" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
+              Reject
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      countEl.innerText = `${count} Orders`;
+    });
+
+    // Approve / Reject & Balance Deduction Logic
+    window.handleOrderStatus = async function(key, uid, status, detailsText) {
+      try {
+        await update(ref(db, `freeProductOrders/${key}`), { status: status });
+        if (uid) {
+          await update(ref(db, `user_free_orders/${uid}/${key}`), { status: status });
+        }
+
+        // If Approved, extract numbers from details and deduct from user balance
+        if (status === 'Approved' && uid) {
+          // Extract price numbers from details string (e.g. "Rs 500" -> 500)
+          const matches = detailsText.match(/(\d+)/);
+          const deductAmount = matches ? parseFloat(matches[0]) : 0;
+
+          if (deductAmount > 0) {
+            const userRef = ref(db, `users/${uid}`);
+            const userSnap = await get(userRef);
+            if (userSnap.exists()) {
+              const currentBal = userSnap.val().balance || 0;
+              const newBal = Math.max(0, currentBal - deductAmount);
+              await update(userRef, { balance: newBal });
+              showToast(`Order approved! Rs ${deductAmount} user ke balance se kaat liye gaye hain.`, "success");
+              return;
+            }
+          }
+        }
+
+        showToast(`Order status successfully ${status.toLowerCase()} kar diya gaya!`, "success");
+      } catch (err) {
+        console.error(err);
+        showToast("Status update karne me masla aya!", "error");
+      }
+    };
+  </script>
+</body>
+</html>
