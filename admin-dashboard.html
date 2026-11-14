@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sabii - Professional Admin Dashboard</title>
+  <title>Sabii - Master Admin Dashboard</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -61,10 +61,6 @@
     .sabii-button:hover {
       box-shadow: 0 4px 15px rgba(197, 160, 89, 0.35);
     }
-    .nav-btn.active {
-      background: #C5A059;
-      color: #FFFFFF;
-    }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: #FAF9F6; }
     ::-webkit-scrollbar-thumb { background: #C5A059; border-radius: 10px; }
@@ -72,15 +68,15 @@
 </head>
 <body class="flex flex-col min-h-screen text-stone-800">
 
-  <!-- Toast Notification Container -->
+  <!-- Toast Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- Product Upload Modal -->
+  <!-- Product Upload Modal (Gallery Image Selection) -->
   <div id="product-modal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
-    <div class="sabii-card max-w-lg w-full rounded-3xl p-6 space-y-4 bg-white shadow-2xl relative">
+    <div class="sabii-card max-w-lg w-full rounded-3xl p-6 space-y-4 bg-white shadow-2xl relative max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
         <h3 class="text-base font-bold font-brand text-stone-800 flex items-center gap-2">
-          <i class="fa-solid fa-cloud-arrow-up text-sabii-gold"></i> Upload Dashboard Product
+          <i class="fa-solid fa-cloud-arrow-up text-sabii-gold"></i> Upload Product to Dashboard
         </h3>
         <button onclick="closeProductModal()" class="w-8 h-8 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center hover:bg-stone-200 transition">
           <i class="fa-solid fa-xmark"></i>
@@ -106,10 +102,17 @@
             <input type="number" id="p-newprice" placeholder="2000" required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
           </div>
         </div>
+
+        <!-- Gallery Image Picker -->
         <div>
-          <label class="block font-semibold text-stone-700 mb-1">Image URL</label>
-          <input type="url" id="p-image" placeholder="https://example.com/image.jpg" required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+          <label class="block font-semibold text-stone-700 mb-1">Select Image from Gallery</label>
+          <input type="file" id="p-image-file" accept="image/*" onchange="previewImage(event)" required class="w-full px-3 py-2 rounded-xl border border-sabii-gold/30 bg-stone-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-sabii-gold/20 file:text-sabii-darkgold cursor-pointer">
+          
+          <div id="image-preview-box" class="mt-2 hidden">
+            <img id="image-preview" src="" alt="Preview" class="h-32 w-full object-cover rounded-xl border border-sabii-gold/30">
+          </div>
         </div>
+
         <div>
           <label class="block font-semibold text-stone-700 mb-1">Daraz Affiliate / Buy Link</label>
           <input type="url" id="p-link" placeholder="https://daraz.pk/products/..." required class="w-full px-3 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
@@ -145,66 +148,66 @@
     </div>
   </header>
 
-  <!-- Main Content Layout -->
+  <!-- Main Container -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
     
-    <!-- Sidebar Menu (All Required Buttons) -->
+    <!-- Sidebar Navigation: Direct HTML Links -->
     <aside class="w-full md:w-72 shrink-0 space-y-2">
       <div class="sabii-card rounded-2xl p-3 space-y-1 bg-white">
-        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-3 pb-2">Admin Sections</p>
+        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-3 pb-2">Admin Pages & Links</p>
         
-        <button onclick="switchTab('users')" id="btn-users" class="nav-btn active w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        <a href="users.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-users w-5 text-sabii-darkgold"></i> Users
-        </button>
-        <button onclick="switchTab('withdraw')" id="btn-withdraw" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="withdraw.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-wallet w-5 text-sabii-darkgold"></i> Withdraw
-        </button>
-        <button onclick="switchTab('buy-product')" id="btn-buy-product" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="buy-product-earn-40.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-bag-shopping w-5 text-sabii-darkgold"></i> Buy Product Earn 40
-        </button>
-        <button onclick="switchTab('free-product')" id="btn-free-product" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="free-product.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-gift w-5 text-sabii-darkgold"></i> Free Product
-        </button>
-        <button onclick="switchTab('vip-ads')" id="btn-vip-ads" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="vip-click-ads-proof.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-crown w-5 text-sabii-darkgold"></i> VIP Click Ads Proof
-        </button>
-        <button onclick="switchTab('video-proof')" id="btn-video-proof" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="video-watching-proof.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-video w-5 text-sabii-darkgold"></i> Video Watching Proof
-        </button>
-        <button onclick="switchTab('simple-task')" id="btn-simple-task" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="simple-task-proof.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-list-check w-5 text-sabii-darkgold"></i> Simple Task Proof
-        </button>
-        <button onclick="switchTab('jobs-proof')" id="btn-jobs-proof" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="jobs-proof.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-briefcase w-5 text-sabii-darkgold"></i> Jobs Proof
-        </button>
-        <button onclick="switchTab('gmail-selling')" id="btn-gmail-selling" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="gmail-selling.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-envelope-open-text w-5 text-sabii-darkgold"></i> Gmail Selling
-        </button>
-        <button onclick="switchTab('referral')" id="btn-referral" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="referral-see.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-user-group w-5 text-sabii-darkgold"></i> Referral See
-        </button>
-        <button onclick="switchTab('free-product-proof')" id="btn-free-product-proof" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="free-product-proof.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-box-open w-5 text-sabii-darkgold"></i> Free Product Proof
-        </button>
-        <button onclick="switchTab('promotion')" id="btn-promotion" class="nav-btn w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 transition text-left">
+        </a>
+        <a href="promotion.html" class="flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-stone-700 hover:bg-sabii-gold/10 hover:text-sabii-darkgold transition">
           <i class="fa-solid fa-bullhorn w-5 text-sabii-darkgold"></i> Promotion
-        </button>
+        </a>
       </div>
     </aside>
 
-    <!-- Content Table Section -->
+    <!-- Main Content Area: Products Management & Deletion -->
     <section class="flex-grow sabii-card rounded-3xl p-6 bg-white space-y-4">
       <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
-        <h2 id="panel-title" class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-users text-sabii-gold"></i> Users Management
+        <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-bag-shopping text-sabii-gold"></i> Manage Dashboard Products
         </h2>
-        <span id="item-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
+        <span id="product-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
       </div>
 
-      <div id="panel-content" class="overflow-x-auto">
-        <div class="text-center py-12 text-stone-400 text-xs">
+      <div id="admin-products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="col-span-full text-center py-12 text-stone-400 text-xs">
           <i class="fa-solid fa-spinner fa-spin text-sabii-gold text-xl mb-2"></i>
-          <p>Loading database...</p>
+          <p>Loading products...</p>
         </div>
       </div>
     </section>
@@ -214,7 +217,7 @@
   <!-- Firebase Logic & Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, push, set, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC0ufsDkglGIXuU8Tj3wg4-yexoI6oxBm4",
@@ -229,7 +232,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let activeTab = 'users';
+    let base64Image = "";
 
     window.showToast = function(message, type = 'success') {
       const container = document.getElementById('toast-container');
@@ -249,15 +252,31 @@
       document.getElementById('product-modal').classList.add('hidden');
     };
 
-    // Upload Product to Firebase (`admin/dashboardProducts`)
+    window.previewImage = function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          base64Image = e.target.result;
+          document.getElementById('image-preview').src = base64Image;
+          document.getElementById('image-preview-box').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
     window.handleProductUpload = async function(e) {
       e.preventDefault();
       const name = document.getElementById('p-name').value;
       const details = document.getElementById('p-details').value;
       const oldPrice = document.getElementById('p-oldprice').value;
       const newPrice = document.getElementById('p-newprice').value;
-      const image = document.getElementById('p-image').value;
       const darazLink = document.getElementById('p-link').value;
+
+      if (!base64Image) {
+        showToast("Please select an image from gallery!", "error");
+        return;
+      }
 
       const btn = document.getElementById('upload-btn');
       btn.disabled = true;
@@ -265,156 +284,76 @@
 
       try {
         const newProductRef = push(ref(db, 'admin/dashboardProducts'));
-        await set(newProductRef, { name, details, oldPrice, newPrice, image, darazLink, createdAt: Date.now() });
-        showToast("Product successfully dashboard par publish ho gaya!", "success");
+        await set(newProductRef, { name, details, oldPrice, newPrice, image: base64Image, darazLink, createdAt: Date.now() });
+        showToast("Product successfully published to dashboard!", "success");
         closeProductModal();
         document.getElementById('product-form').reset();
+        document.getElementById('image-preview-box').classList.add('hidden');
+        base64Image = "";
       } catch (err) {
         console.error(err);
-        showToast("Product publish karne me masla aya!", "error");
+        showToast("Error publishing product!", "error");
       } finally {
         btn.disabled = false;
         btn.innerText = "Publish Product To Dashboard";
       }
     };
 
-    window.switchTab = function(tab) {
-      activeTab = tab;
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(`btn-${tab}`);
-      if (activeBtn) activeBtn.classList.add('active');
+    const productsRef = ref(db, 'admin/dashboardProducts');
+    onValue(productsRef, (snapshot) => {
+      const grid = document.getElementById('admin-products-grid');
+      const countEl = document.getElementById('product-count');
+      grid.innerHTML = "";
 
-      const titles = {
-        'users': 'Users Management',
-        'withdraw': 'Withdraw Requests',
-        'buy-product': 'Buy Product Earn 40 Submissions',
-        'free-product': 'Free Product Orders',
-        'vip-ads': 'VIP Click Ads Proofs',
-        'video-proof': 'Video Watching Proofs',
-        'simple-task': 'Simple Task Proofs',
-        'jobs-proof': 'Jobs Proofs',
-        'gmail-selling': 'Gmail Selling Requests',
-        'referral': 'Referral Tracking',
-        'free-product-proof': 'Free Product Proofs',
-        'promotion': 'Promotion Requests'
-      };
-      document.getElementById('panel-title').innerHTML = `<i class="fa-solid fa-folder-open text-sabii-gold"></i> ${titles[tab] || tab}`;
-      loadTabData(tab);
-    };
+      if (!snapshot.exists()) {
+        countEl.innerText = "0 Products";
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-stone-400 text-xs"><i class="fa-solid fa-box-open text-sabii-gold text-2xl mb-2"></i><p>No products uploaded yet.</p></div>`;
+        return;
+      }
 
-    function loadTabData(tab) {
-      const container = document.getElementById('panel-content');
-      const countEl = document.getElementById('item-count');
-      container.innerHTML = `<div class="text-center py-12 text-stone-400 text-xs"><i class="fa-solid fa-spinner fa-spin text-sabii-gold text-xl mb-2"></i><p>Loading...</p></div>`;
+      let count = 0;
+      snapshot.forEach((childSnap) => {
+        count++;
+        const p = childSnap.val();
+        const key = childSnap.key;
 
-      let dbPath = '';
-      if (tab === 'users') dbPath = 'users';
-      else if (tab === 'withdraw') dbPath = 'withdrawals';
-      else if (tab === 'buy-product') dbPath = 'admin/buyProductSubmissions';
-      else if (tab === 'free-product') dbPath = 'freeProductOrders';
-      else if (tab === 'vip-ads') dbPath = 'admin/vipAdSubmissions';
-      else if (tab === 'video-proof') dbPath = 'admin/videoSubmissions';
-      else if (tab === 'simple-task') dbPath = 'admin/taskSubmissions';
-      else if (tab === 'jobs-proof') dbPath = 'admin/jobSubmissions';
-      else if (tab === 'gmail-selling') dbPath = 'admin/gmailSubmissions';
-      else if (tab === 'referral') dbPath = 'users';
-      else if (tab === 'free-product-proof') dbPath = 'admin/freeProductProofs';
-      else if (tab === 'promotion') dbPath = 'admin/promotions';
+        const card = document.createElement('div');
+        card.className = "sabii-card rounded-2xl p-4 flex flex-col justify-between bg-white space-y-3 border border-sabii-gold/20 shadow-sm";
+        card.innerHTML = `
+          <div class="space-y-2">
+            <div class="w-full h-40 rounded-xl overflow-hidden border border-sabii-gold/20 bg-stone-50">
+              <img src="${p.image}" alt="Product" class="w-full h-full object-cover">
+            </div>
+            <div>
+              <h4 class="font-bold text-sm text-stone-800">${p.name}</h4>
+              <p class="text-[11px] text-stone-500 line-clamp-2">${p.details}</p>
+              <div class="flex items-center gap-2 pt-1">
+                <span class="text-xs text-stone-400 line-through">Rs ${p.oldPrice}</span>
+                <span class="text-sm font-bold sabii-gold-text">Rs ${p.newPrice}</span>
+                <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded ml-auto">20% OFF</span>
+              </div>
+            </div>
+          </div>
+          <button onclick="deleteProduct('${key}')" class="w-full py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-trash"></i> Delete Product
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+      countEl.innerText = `${count} Products`;
+    });
 
-      onValue(ref(db, dbPath), (snapshot) => {
-        container.innerHTML = "";
-        if (!snapshot.exists()) {
-          countEl.innerText = `0 Records`;
-          container.innerHTML = `<div class="text-center py-12 text-stone-400 text-xs"><i class="fa-solid fa-box-open text-sabii-gold text-2xl mb-2"></i><p>Koi record mojood nahi hai.</p></div>`;
-          return;
+    window.deleteProduct = async function(key) {
+      if (confirm("Are you sure you want to delete this product?")) {
+        try {
+          await remove(ref(db, `admin/dashboardProducts/${key}`));
+          showToast("Product deleted successfully!", "success");
+        } catch (err) {
+          console.error(err);
+          showToast("Failed to delete product!", "error");
         }
-
-        let count = 0;
-        let html = `<table class="w-full text-left border-collapse text-xs"><thead><tr class="border-b border-stone-200 text-stone-400 uppercase text-[10px]">`;
-
-        if (tab === 'users' || tab === 'referral') {
-          html += `<th class="py-3 px-3">Name</th><th class="py-3 px-3">Email</th><th class="py-3 px-3">Balance</th><th class="py-3 px-3">Referral Code</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
-          snapshot.forEach((child) => {
-            count++;
-            const u = child.val();
-            const uid = child.key;
-            html += `<tr class="border-b border-stone-100 hover:bg-stone-50">
-              <td class="py-3 px-3 font-bold text-stone-800">${u.name || 'N/A'}</td>
-              <td class="py-3 px-3 text-stone-600">${u.email || 'N/A'}</td>
-              <td class="py-3 px-3 font-bold text-sabii-darkgold">Rs ${u.balance || 0}</td>
-              <td class="py-3 px-3 text-stone-500">${u.referralCode || 'N/A'} (Refs: ${u.totalReferrals || 0})</td>
-              <td class="py-3 px-3 text-right">
-                <button onclick="editBalance('${uid}', ${u.balance || 0})" class="px-2.5 py-1.5 bg-amber-100 text-amber-800 rounded-lg font-bold hover:bg-amber-200"><i class="fa-solid fa-pen"></i> Edit Bal</button>
-              </td>
-            </tr>`;
-          });
-        } else if (tab === 'withdraw') {
-          html += `<th class="py-3 px-3">User ID</th><th class="py-3 px-3">Amount</th><th class="py-3 px-3">Details</th><th class="py-3 px-3">Status</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
-          snapshot.forEach((child) => {
-            count++;
-            const w = child.val();
-            const key = child.key;
-            html += `<tr class="border-b border-stone-100 hover:bg-stone-50">
-              <td class="py-3 px-3 font-bold text-stone-800">${w.uid || 'N/A'}</td>
-              <td class="py-3 px-3 font-bold text-sabii-darkgold">Rs ${w.amount || 0}</td>
-              <td class="py-3 px-3 text-stone-600">${w.method || 'Account'} - ${w.accountNumber || ''}</td>
-              <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${w.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${w.status || 'Pending'}</span></td>
-              <td class="py-3 px-3 text-right space-x-1">
-                <button onclick="updateStatus('withdrawals', '${key}', 'Approved')" class="px-2.5 py-1 bg-emerald-600 text-white rounded font-bold">Approve</button>
-                <button onclick="updateStatus('withdrawals', '${key}', 'Rejected')" class="px-2.5 py-1 bg-red-600 text-white rounded font-bold">Reject</button>
-              </td>
-            </tr>`;
-          });
-        } else {
-          html += `<th class="py-3 px-3">Record ID</th><th class="py-3 px-3">Proof / Details</th><th class="py-3 px-3">Status</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody>`;
-          snapshot.forEach((child) => {
-            count++;
-            const item = child.val();
-            const key = child.key;
-            const img = item.image || item.photo ? `<a href="${item.image || item.photo}" target="_blank" class="text-sabii-darkgold underline font-bold"><i class="fa-solid fa-eye"></i> View Image</a>` : 'No Image';
-            html += `<tr class="border-b border-stone-100 hover:bg-stone-50">
-              <td class="py-3 px-3 font-bold text-stone-800">${key.substring(0, 8)}...</td>
-              <td class="py-3 px-3 text-stone-600">${img} - ${item.details || item.name || 'Submission'}</td>
-              <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${item.status || 'Pending'}</span></td>
-              <td class="py-3 px-3 text-right space-x-1">
-                <button onclick="updateStatus('${dbPath}', '${key}', 'Approved')" class="px-2.5 py-1 bg-emerald-600 text-white rounded font-bold">Approve</button>
-                <button onclick="deleteRec('${dbPath}', '${key}')" class="px-2 py-1 bg-red-600 text-white rounded font-bold"><i class="fa-solid fa-trash"></i></button>
-              </td>
-            </tr>`;
-          });
-        }
-
-        html += `</tbody></table>`;
-        countEl.innerText = `${count} Records`;
-        container.innerHTML = html;
-      }, { onlyOnce: true });
-    }
-
-    window.editBalance = async function(uid, currentBal) {
-      const val = prompt("Enter new balance:", currentBal);
-      if (val !== null) {
-        await update(ref(db, `users/${uid}`), { balance: parseFloat(val) });
-        showToast("Balance updated successfully!", "success");
-        loadTabData(activeTab);
       }
     };
-
-    window.updateStatus = async function(path, key, status) {
-      await update(ref(db, `${path}/${key}`), { status: status });
-      showToast(`Status updated to ${status}!`, "success");
-      loadTabData(activeTab);
-    };
-
-    window.deleteRec = async function(path, key) {
-      if (confirm("Delete this record?")) {
-        await remove(ref(db, `${path}/${key}`));
-        showToast("Record deleted!", "success");
-        loadTabData(activeTab);
-      }
-    };
-
-    // Initial Load
-    loadTabData('users');
   </script>
 </body>
 </html>
