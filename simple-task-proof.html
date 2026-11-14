@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sabii - Admin Simple Task Proofs</title>
+  <title>Sabii - Admin Tasks & Proofs Management</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -52,6 +53,17 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+    .sabii-button {
+      background: linear-gradient(135deg, #C5A059 0%, #D4AF37 50%, #A37F38 100%);
+      color: #FFFFFF;
+      transition: all 0.3s ease;
+    }
+    .sabii-button:hover {
+      box-shadow: 0 4px 15px rgba(197, 160, 89, 0.35);
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #FAF9F6; }
+    ::-webkit-scrollbar-thumb { background: #C5A059; border-radius: 10px; }
   </style>
 </head>
 <body class="flex flex-col min-h-screen text-stone-800">
@@ -59,14 +71,21 @@
   <!-- Toast Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 
-  <!-- Image Modal Viewer -->
-  <div id="image-modal" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeImageModal()">
-    <div class="relative max-w-xl w-full bg-white rounded-3xl p-4 shadow-2xl text-center" onclick="event.stopPropagation()">
-      <button onclick="closeImageModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center font-bold">
-        <i class="fa-solid fa-xmark"></i>
+  <!-- View Screenshot Modal -->
+  <div id="screenshot-modal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="sabii-card max-w-lg w-full rounded-3xl p-6 space-y-4 bg-white shadow-2xl relative max-h-[90vh] overflow-y-auto text-center">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h3 class="text-base font-bold font-brand text-stone-800">User Submitted Screenshot</h3>
+        <button onclick="closeScreenshotModal()" class="w-8 h-8 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center hover:bg-stone-200 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="rounded-2xl overflow-hidden border border-sabii-gold/30 bg-stone-50 p-2">
+        <img id="modal-proof-img" src="" alt="Proof Screenshot" class="w-full max-h-[60vh] object-contain rounded-xl">
+      </div>
+      <button onclick="closeScreenshotModal()" class="w-full py-2.5 rounded-xl sabii-button font-bold text-xs uppercase tracking-wider">
+        Band Karein
       </button>
-      <h3 class="font-bold text-sm text-stone-800 mb-3">Task Proof Screenshot</h3>
-      <img id="modal-img" src="" alt="Task Proof" class="max-h-[70vh] w-auto mx-auto rounded-xl border border-sabii-gold/30">
     </div>
   </div>
 
@@ -78,8 +97,8 @@
           S
         </div>
         <div>
-          <h1 class="font-brand text-xl font-bold text-sabii-lightgold leading-none">Simple Tasks Proof Control</h1>
-          <span class="text-[9px] text-stone-400 uppercase tracking-widest">Admin Panel</span>
+          <h1 class="font-brand text-xl font-bold text-sabii-lightgold leading-none">Admin Tasks Management</h1>
+          <span class="text-[9px] text-stone-400 uppercase tracking-widest">Master Panel</span>
         </div>
       </div>
       <a href="admin-dashboard.html" class="py-2 px-3.5 rounded-xl bg-sabii-gold/20 border border-sabii-gold/40 text-sabii-lightgold hover:bg-sabii-gold hover:text-white transition text-xs font-bold flex items-center gap-2">
@@ -88,35 +107,93 @@
     </div>
   </header>
 
-  <!-- Main Area -->
-  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <!-- Main Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
     
+    <!-- SECTION 1: Add New Task Form -->
     <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
       <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
         <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-list-check text-sabii-gold"></i> User Task Proof Submissions
+          <i class="fa-solid fa-plus-circle text-sabii-gold"></i> Create New Task for Users
         </h2>
-        <span id="sub-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
+        <span class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Instant Publish</span>
       </div>
 
-      <!-- Table Container -->
+      <form onsubmit="handleCreateTask(event)" class="space-y-4 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Task Category</label>
+            <select id="task-category" required class="w-full px-3.5 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50 font-medium">
+              <option value="social">Social Task (Rs 0.10)</option>
+              <option value="download">Download Task (Rs 0.30)</option>
+              <option value="video">Video Watch Task (Rs 0.15)</option>
+              <option value="full">Full Task (Rs 0.50)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Task Name</label>
+            <input type="text" id="task-name" placeholder="e.g. Subscribe YouTube Channel" required class="w-full px-3.5 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Reward Amount (Rs)</label>
+            <input type="number" step="0.01" id="task-reward" placeholder="0.10" required class="w-full px-3.5 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Task Description / Instructions</label>
+            <input type="text" id="task-desc" placeholder="Channel ko subscribe karein aur screenshot dein..." required class="w-full px-3.5 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-700 mb-1">Task Link / URL</label>
+            <input type="url" id="task-link" placeholder="https://youtube.com/..." required class="w-full px-3.5 py-2.5 rounded-xl border border-sabii-gold/30 focus:outline-none focus:border-sabii-gold bg-stone-50">
+          </div>
+        </div>
+
+        <button type="submit" id="create-task-btn" class="py-3 px-6 rounded-xl sabii-button font-bold text-xs uppercase tracking-wider shadow-md">
+          Publish Task to Users Dashboard
+        </button>
+      </form>
+    </div>
+
+    <!-- SECTION 2: Active Tasks Management Grid -->
+    <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-sabii-gold"></i> Published Tasks List
+        </h2>
+        <span id="task-count-badge" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
+      </div>
+
+      <div id="admin-tasks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="col-span-full text-center py-8 text-stone-400 text-xs">Loading tasks...</div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: User Task Proof Submissions & Approvals -->
+    <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-cloud-arrow-up text-sabii-gold"></i> User Task Proof Submissions (Approve / Reject)
+        </h2>
+        <span id="submission-count-badge" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
+      </div>
+
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="border-b border-stone-200 text-stone-400 uppercase text-[10px]">
-              <th class="py-3 px-3">Screenshot</th>
-              <th class="py-3 px-3">Task Name & Category</th>
-              <th class="py-3 px-3">Reward & User UID</th>
+              <th class="py-3 px-3">Task Name & Reward</th>
+              <th class="py-3 px-3">User UID</th>
+              <th class="py-3 px-3">Screenshot Proof</th>
               <th class="py-3 px-3">Status</th>
               <th class="py-3 px-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody id="submissions-table-body">
             <tr>
-              <td colspan="5" class="text-center py-12 text-stone-400 text-xs">
-                <i class="fa-solid fa-spinner fa-spin text-sabii-gold text-xl mb-2"></i>
-                <p>Loading task submissions...</p>
-              </td>
+              <td colspan="5" class="text-center py-10 text-stone-400 text-xs">Loading submissions...</td>
             </tr>
           </tbody>
         </table>
@@ -126,13 +203,13 @@
   </main>
 
   <footer class="p-3 text-center border-t border-stone-100 bg-white text-[10px] text-stone-400 shadow-inner">
-    &copy; Sabii Application. Master Admin Panel.
+    &copy; Sabii Application. Master Admin Tasks Center.
   </footer>
 
-  <!-- Firebase Logic -->
+  <!-- Firebase Logic & Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update, get, remove, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, onValue, push, set, update, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC0ufsDkglGIXuU8Tj3wg4-yexoI6oxBm4",
@@ -157,24 +234,113 @@
       setTimeout(() => toast.remove(), 4000);
     };
 
-    window.openImageModal = function(url) {
-      document.getElementById('modal-img').src = url;
-      document.getElementById('image-modal').classList.remove('hidden');
+    // Screenshot Modal
+    window.openScreenshotModal = function(imgSrc) {
+      document.getElementById('modal-proof-img').src = imgSrc;
+      document.getElementById('screenshot-modal').classList.remove('hidden');
+    };
+    window.closeScreenshotModal = function() {
+      document.getElementById('screenshot-modal').classList.add('hidden');
     };
 
-    window.closeImageModal = function() {
-      document.getElementById('image-modal').classList.add('hidden');
+    // 1. Create New Task Handler
+    window.handleCreateTask = async function(e) {
+      e.preventDefault();
+      const category = document.getElementById('task-category').value;
+      const name = document.getElementById('task-name').value;
+      const reward = parseFloat(document.getElementById('task-reward').value);
+      const description = document.getElementById('task-desc').value;
+      const link = document.getElementById('task-link').value;
+      const btn = document.getElementById('create-task-btn');
+
+      btn.disabled = true;
+      btn.innerText = "Publishing Task...";
+
+      try {
+        const newTaskRef = push(ref(db, 'admin/tasks'));
+        await set(newTaskRef, {
+          category,
+          name,
+          reward,
+          description,
+          link,
+          createdAt: Date.now()
+        });
+
+        showToast("Task successfully publish ho gaya hai!", "success");
+        document.getElementById('task-name').value = "";
+        document.getElementById('task-desc').value = "";
+        document.getElementById('task-link').value = "";
+        document.getElementById('task-reward').value = "";
+      } catch (err) {
+        console.error(err);
+        showToast("Task publish karne me masla aya!", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Publish Task to Users Dashboard";
+      }
     };
 
-    const subsRef = ref(db, 'admin/taskSubmissions');
-    onValue(subsRef, (snapshot) => {
+    // 2. Fetch and Display Published Tasks
+    onValue(ref(db, 'admin/tasks'), (snapshot) => {
+      const grid = document.getElementById('admin-tasks-grid');
+      const badge = document.getElementById('task-count-badge');
+      grid.innerHTML = "";
+
+      if (!snapshot.exists()) {
+        badge.innerText = "0 Tasks";
+        grid.innerHTML = `<div class="col-span-full text-center py-8 text-stone-400 text-xs">Koi task published nahi hai.</div>`;
+        return;
+      }
+
+      let count = 0;
+      snapshot.forEach((childSnap) => {
+        count++;
+        const t = childSnap.val();
+        const key = childSnap.key;
+
+        const card = document.createElement('div');
+        card.className = "sabii-card rounded-2xl p-4 flex flex-col justify-between space-y-3 bg-stone-50/50";
+        card.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-bold uppercase bg-sabii-gold/15 text-sabii-darkgold px-2 py-0.5 rounded">${t.category}</span>
+              <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Rs ${t.reward}</span>
+            </div>
+            <h4 class="font-bold text-sm text-stone-800">${t.name}</h4>
+            <p class="text-[11px] text-stone-500">${t.description || ''}</p>
+          </div>
+          <button onclick="deleteTask('${key}')" class="w-full py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition shadow-sm">
+            <i class="fa-solid fa-trash mr-1"></i> Delete Task
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+      badge.innerText = `${count} Tasks`;
+    });
+
+    // Delete Task
+    window.deleteTask = async function(key) {
+      if (confirm("Kya aap is task ko delete karna chahte hain?")) {
+        try {
+          await remove(ref(db, `admin/tasks/${key}`));
+          showToast("Task successfully delete ho gaya!", "success");
+        } catch (err) {
+          console.error(err);
+          showToast("Task delete karne me masla aya!", "error");
+        }
+      }
+    };
+
+    // 3. Fetch and Display User Task Submissions
+    onValue(ref(db, 'admin/taskSubmissions'), (snapshot) => {
       const tbody = document.getElementById('submissions-table-body');
-      const countEl = document.getElementById('sub-count');
+      const badge = document.getElementById('submission-count-badge');
       tbody.innerHTML = "";
 
       if (!snapshot.exists()) {
-        countEl.innerText = "0 Submissions";
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-stone-400 text-xs">Koi task submission mojood nahi hai.</td></tr>`;
+        badge.innerText = "0 Submissions";
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-stone-400 text-xs">Koi submission mojood nahi hai.</td></tr>`;
         return;
       }
 
@@ -193,45 +359,46 @@
         tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
         tr.innerHTML = `
           <td class="py-3 px-3">
-            <img src="${item.photo || 'https://via.placeholder.com/150'}" alt="Proof" class="w-12 h-12 rounded-xl object-cover border border-sabii-gold/35 cursor-pointer hover:scale-105 transition" onclick="openImageModal('${item.photo}')">
+            <span class="font-bold text-stone-800 block">${item.taskName || 'Task'}</span>
+            <span class="text-[10px] text-emerald-700 font-bold">Reward: Rs ${item.reward}</span>
+          </td>
+          <td class="py-3 px-3 text-stone-600">
+            <span>${uid ? uid.substring(0, 10) + '...' : 'N/A'}</span>
           </td>
           <td class="py-3 px-3">
-            <span class="font-bold text-stone-800 block">${item.taskName || 'N/A'}</span>
-            <span class="text-[10px] text-stone-500 uppercase">${item.category || 'Task'}</span>
-          </td>
-          <td class="py-3 px-3">
-            <span class="font-bold text-sabii-darkgold block">Rs ${item.reward || 0}</span>
-            <span class="text-[10px] text-stone-400">UID: ${uid ? uid.substring(0, 8) + '...' : 'N/A'}</span>
+            <button onclick="openScreenshotModal('${item.photo}')" class="px-2.5 py-1.5 rounded-lg bg-sabii-gold/20 text-sabii-darkgold font-bold hover:bg-sabii-gold hover:text-white transition">
+              <i class="fa-solid fa-eye mr-1"></i> View Screenshot
+            </button>
           </td>
           <td class="py-3 px-3">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">${item.status || 'Pending'}</span>
           </td>
           <td class="py-3 px-3 text-right space-x-1">
-            <button onclick="handleTaskStatus('${key}', '${uid}', 'Approved', ${item.reward || 0.10}, ${item.rewardCredited || false}, '${item.taskName || 'Task'}')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
+            <button onclick="handleTaskApproval('${key}', '${uid}', 'Approved', ${item.reward || 0.10}, ${item.rewardCredited || false}, '${item.taskName || ''}')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
               Approve
             </button>
-            <button onclick="handleTaskStatus('${key}', '${uid}', 'Rejected', 0, true, '')" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold transition">
+            <button onclick="handleTaskApproval('${key}', '${uid}', 'Rejected', 0, true, '')" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold transition">
               Reject
             </button>
-            <button onclick="deleteTaskSubmission('${key}', '${uid}')" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
+            <button onclick="deleteSubmission('${key}', '${uid}')" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
         `;
         tbody.appendChild(tr);
       });
-      countEl.innerText = `${count} Submissions`;
+      badge.innerText = `${count} Submissions`;
     });
 
-    // Approve / Reject & Reward Crediting Logic
-    window.handleTaskStatus = async function(key, uid, status, rewardAmount, alreadyCredited, taskName) {
+    // Handle Approve / Reject & Add Balance to User
+    window.handleTaskApproval = async function(key, uid, status, rewardAmount, alreadyCredited, taskName) {
       try {
         await update(ref(db, `admin/taskSubmissions/${key}`), { status: status });
         if (uid) {
           await update(ref(db, `user_task_submissions/${uid}/${key}`), { status: status });
         }
 
-        // If Approved and reward not yet credited, give reward to user balance
+        // If Approved and not yet credited, credit balance to user
         if (status === 'Approved' && !alreadyCredited && uid) {
           const userRef = ref(db, `users/${uid}`);
           const userSnap = await get(userRef);
@@ -240,7 +407,7 @@
             const newBal = parseFloat((currentBal + rewardAmount).toFixed(2));
             await update(userRef, { balance: newBal });
 
-            // Record earning
+            // Record earning history entry
             const earnRef = push(ref(db, `user_earnings/${uid}`));
             await set(earnRef, {
               source: `Task Reward (${taskName})`,
@@ -262,9 +429,9 @@
       }
     };
 
-    // Delete Task Submission
-    window.deleteTaskSubmission = async function(key, uid) {
-      if (confirm("Kya aap is task submission ko delete karna chahte hain?")) {
+    // Delete Submission
+    window.deleteSubmission = async function(key, uid) {
+      if (confirm("Kya aap is submission ko delete karna chahte hain?")) {
         try {
           await remove(ref(db, `admin/taskSubmissions/${key}`));
           if (uid) {
