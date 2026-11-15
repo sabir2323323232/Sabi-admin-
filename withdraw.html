@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sabii - Admin Withdraw Management</title>
+  <title>Sabii - Master Admin Panel (Withdraw & VIP Ads)</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -24,7 +25,7 @@
               lightgold: '#E5D3B3',
               darkgold: '#A37F38',
               accent: '#D4AF37',
-              bg: '#FFFFFF',
+              bg: '#FAF9F6',
             }
           },
           fontFamily: {
@@ -45,7 +46,7 @@
 
     .sabii-card {
       background: #FFFFFF;
-      border: 1px solid rgba(197, 160, 89, 0.2);
+      border: 1px solid rgba(197, 160, 89, 0.25);
       box-shadow: 0 10px 30px rgba(197, 160, 89, 0.05);
     }
 
@@ -65,7 +66,7 @@
       box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
     }
 
-    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #FAF9F6; }
     ::-webkit-scrollbar-thumb { background: #C5A059; border-radius: 10px; }
   </style>
@@ -75,6 +76,24 @@
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 
+  <!-- Screenshot Preview Modal -->
+  <div id="screenshot-modal" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="sabii-card max-w-lg w-full rounded-3xl p-5 bg-white shadow-2xl relative text-center space-y-4">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h3 class="text-sm font-bold font-brand text-stone-800">User Task Screenshot Proof</h3>
+        <button onclick="closeScreenshotModal()" class="w-8 h-8 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="max-h-[65vh] overflow-auto rounded-2xl border border-stone-200 bg-stone-50 p-2">
+        <img id="modal-screenshot-img" src="" alt="Proof Screenshot" class="w-full object-contain rounded-xl">
+      </div>
+      <button onclick="closeScreenshotModal()" class="w-full py-2.5 rounded-xl sabii-button font-bold text-xs uppercase tracking-wider">
+        Band Karein
+      </button>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="bg-stone-900 border-b-2 border-sabii-gold text-white sticky top-0 z-40 shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
@@ -83,23 +102,41 @@
           S
         </div>
         <div>
-          <h1 class="font-brand text-xl font-bold text-sabii-lightgold leading-none">Withdraw Requests Control</h1>
-          <span class="text-[9px] text-stone-400 uppercase tracking-widest">Admin Panel</span>
+          <h1 class="font-brand text-xl font-bold text-sabii-lightgold leading-none">Master Admin Panel</h1>
+          <span class="text-[9px] text-stone-400 uppercase tracking-widest">Withdraw & VIP Ads Control</span>
         </div>
       </div>
 
-      <!-- Back to Admin Dashboard -->
-      <a href="admin-dashboard.html" class="py-2 px-3.5 rounded-xl bg-sabii-gold/20 border border-sabii-gold/40 text-sabii-lightgold hover:bg-sabii-gold hover:text-white transition-all text-xs font-bold flex items-center gap-1.5">
-        <i class="fa-solid fa-arrow-left"></i> Admin Dashboard
+      <!-- Back to Dashboard -->
+      <a href="dashboard.html" class="py-2 px-3.5 rounded-xl bg-sabii-gold/20 border border-sabii-gold/40 text-sabii-lightgold hover:bg-sabii-gold hover:text-white transition-all text-xs font-bold flex items-center gap-1.5">
+        <i class="fa-solid fa-arrow-left"></i> Dashboard
       </a>
     </div>
   </header>
 
   <!-- Main Area -->
-  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
+    <!-- Section 1: VIP Direct Ads (Rs 5) Submissions Approval -->
     <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
-      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3 flex-wrap gap-2">
+        <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-sabii-gold"></i> VIP Direct Ads Screenshot Submissions
+        </h2>
+        <span id="vip-pending-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
+      </div>
+
+      <div id="admin-vip-submissions-container" class="space-y-3">
+        <div class="text-center py-8 text-stone-400 text-xs">
+          <i class="fa-solid fa-spinner fa-spin text-sabii-gold text-xl mb-2"></i>
+          <p>Loading VIP ad submissions...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: User Withdrawals Management -->
+    <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3 flex-wrap gap-2">
         <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
           <i class="fa-solid fa-wallet text-sabii-gold"></i> All User Withdrawals
         </h2>
@@ -133,14 +170,15 @@
   </main>
 
   <!-- Footer -->
-  <footer class="p-3 text-center border-t border-stone-100 bg-white text-[10px] text-stone-400 shadow-inner">
+  <footer class="p-3 text-center border-t border-stone-100 bg-white text-[10px] text-stone-400 shadow-inner mt-auto">
     &copy; Sabii Application. Master Admin Panel.
   </footer>
 
   <!-- Firebase Logic & Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, update, get, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC0ufsDkglGIXuU8Tj3wg4-yexoI6oxBm4",
@@ -153,6 +191,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
 
     window.showToast = function(message, type = 'success') {
@@ -165,78 +204,199 @@
       setTimeout(() => toast.remove(), 4000);
     };
 
-    // Fetch and Display Withdrawals in Real-time from `admin/withdrawals`
-    const withdrawalsRef = ref(db, 'admin/withdrawals');
-    onValue(withdrawalsRef, (snapshot) => {
-      const tbody = document.getElementById('withdraw-table-body');
-      const countEl = document.getElementById('withdraw-count');
-      tbody.innerHTML = "";
+    window.openScreenshotModal = function(imgSrc) {
+      document.getElementById('modal-screenshot-img').src = imgSrc;
+      document.getElementById('screenshot-modal').classList.remove('hidden');
+    };
 
-      if (!snapshot.exists()) {
-        countEl.innerText = "0 Requests";
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-stone-400 text-xs">Koi withdrawal request mojood nahi hai.</td></tr>`;
-        return;
+    window.closeScreenshotModal = function() {
+      document.getElementById('screenshot-modal').classList.add('hidden');
+    };
+
+    // 1. VIP Ads Approval Logic
+    window.approveVipAd = async function(subId, userId, adNumber) {
+      try {
+        const subAdminRef = ref(db, `admin/vipAdsSubmissions/${subId}`);
+        const subUserRef = ref(db, `user_vip_ads_submissions/${userId}/${subId}`);
+        const userRef = ref(db, `users/${userId}`);
+
+        await update(subAdminRef, { status: 'Approved', rewardCredited: true });
+        await update(subUserRef, { status: 'Approved', rewardCredited: true });
+
+        const userSnap = await get(userRef);
+        if (userSnap.exists()) {
+          const currentBal = parseFloat(userSnap.val().balance || 0);
+          await update(userRef, { balance: currentBal + 5 });
+
+          const earnRef = push(ref(db, `user_earnings/${userId}`));
+          await set(earnRef, {
+            source: `VIP Direct Ad #${adNumber} Approved`,
+            amount: 5,
+            timestamp: new Date().toISOString()
+          });
+        }
+
+        showToast(`VIP Ad #${adNumber} successfully approve ho gaya aur user ko Rs 5 mil gaye!`, "success");
+      } catch (err) {
+        console.error(err);
+        showToast("VIP Ad approval me masla aya!", "error");
       }
+    };
 
-      let count = 0;
-      snapshot.forEach((childSnap) => {
-        count++;
-        const w = childSnap.val();
-        const key = childSnap.key; // Unique withdraw ID
-        const uid = w.uid;
+    window.rejectVipAd = async function(subId, userId, adNumber) {
+      try {
+        await update(ref(db, `admin/vipAdsSubmissions/${subId}`), { status: 'Rejected' });
+        await update(ref(db, `user_vip_ads_submissions/${userId}/${subId}`), { status: 'Rejected' });
+        showToast(`VIP Ad #${adNumber} reject kar diya gaya hai.`, "error");
+      } catch (err) {
+        console.error(err);
+        showToast("Rejection me masla aya!", "error");
+      }
+    };
 
-        let statusClass = "bg-amber-100 text-amber-800";
-        if (w.status === 'Approved') statusClass = "bg-emerald-100 text-emerald-800";
-        else if (w.status === 'Rejected') statusClass = "bg-red-100 text-red-800";
-
-        const tr = document.createElement('tr');
-        tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
-        tr.innerHTML = `
-          <td class="py-3 px-3">
-            <span class="font-bold text-stone-800 block">${w.accountName || 'N/A'}</span>
-            <span class="text-[10px] text-stone-400">UID: ${uid ? uid.substring(0, 8) + '...' : 'N/A'}</span>
-          </td>
-          <td class="py-3 px-3">
-            <span class="font-semibold text-stone-700 block">${w.method || 'Method'}</span>
-            <span class="text-stone-500">${w.accountNumber || 'N/A'}</span>
-          </td>
-          <td class="py-3 px-3 font-bold text-sabii-darkgold text-sm">Rs ${w.amount || 0}</td>
-          <td class="py-3 px-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">
-              ${w.status || 'Pending'}
-            </span>
-          </td>
-          <td class="py-3 px-3 text-right space-x-1">
-            <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Approved')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
-              Approve
-            </button>
-            <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Rejected')" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
-              Reject
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-      countEl.innerText = `${count} Requests`;
-    });
-
-    // Approve or Reject Function
+    // 2. Withdraw Management Logic
     window.updateWithdrawStatus = async function(withdrawKey, uid, newStatus) {
       try {
-        // Update status in admin/withdrawals
         await update(ref(db, `admin/withdrawals/${withdrawKey}`), { status: newStatus });
-        
-        // Update status in user's personal withdrawals record (`user_withdrawals/{uid}/{withdrawKey}`)
         if (uid) {
           await update(ref(db, `user_withdrawals/${uid}/${withdrawKey}`), { status: newStatus });
         }
-
         showToast(`Withdrawal request successfully ${newStatus.toLowerCase()} kar di gayi!`, "success");
       } catch (err) {
         console.error(err);
-        showToast("Status update karne me masla aya!", "error");
+        showToast("Withdraw status update karne me masla aya!", "error");
       }
     };
+
+    // Auth & Realtime Listeners
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        // Listen to VIP Ads Submissions
+        const vipSubRef = ref(db, 'admin/vipAdsSubmissions');
+        onValue(vipSubRef, async (snapshot) => {
+          const container = document.getElementById('admin-vip-submissions-container');
+          const countEl = document.getElementById('vip-pending-count');
+          container.innerHTML = "";
+
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            const keys = Object.keys(data).reverse();
+            let pendingCount = 0;
+
+            for (const key of keys) {
+              const item = data[key];
+              if (item.status === 'Pending') pendingCount++;
+
+              let userName = item.uid;
+              try {
+                const uSnap = await get(ref(db, `users/${item.uid}`));
+                if (uSnap.exists()) {
+                  userName = uSnap.val().name || uSnap.val().email || item.uid;
+                }
+              } catch(e) {}
+
+              let actionButtons = `
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <button onclick="approveVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-check"></i> Approve (Rs 5)
+                  </button>
+                  <button onclick="rejectVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-xmark"></i> Reject
+                  </button>
+                </div>
+              `;
+
+              if (item.status === 'Approved') {
+                actionButtons = `<span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Approved</span>`;
+              } else if (item.status === 'Rejected') {
+                actionButtons = `<span class="px-3 py-1 rounded-lg bg-red-100 text-red-800 text-xs font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> Rejected</span>`;
+              }
+
+              const card = document.createElement('div');
+              card.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200 gap-4";
+              card.innerHTML = `
+                <div class="flex items-center gap-3">
+                  <div class="w-14 h-14 rounded-xl border border-sabii-gold/30 overflow-hidden bg-white shrink-0 cursor-pointer shadow-inner" onclick="openScreenshotModal('${item.photo}')">
+                    <img src="${item.photo}" alt="Proof" class="w-full h-full object-cover hover:scale-110 transition duration-300">
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-stone-800 text-xs">VIP Ad #${item.adNumber}</span>
+                      <span class="text-[10px] bg-sabii-gold/15 text-sabii-darkgold font-bold px-2 py-0.5 rounded">Rs 5 Reward</span>
+                    </div>
+                    <p class="text-[11px] text-stone-600 mt-0.5"><i class="fa-solid fa-user text-sabii-gold mr-1"></i> User: <span class="font-semibold">${userName}</span></p>
+                    <p class="text-[10px] text-stone-400"><i class="fa-solid fa-clock mr-1"></i> ${new Date(item.timestamp).toLocaleString()}</p>
+                  </div>
+                </div>
+                ${actionButtons}
+              `;
+              container.appendChild(card);
+            }
+            countEl.innerText = `${pendingCount} Pending`;
+          } else {
+            container.innerHTML = `<p class="text-center text-xs text-stone-400 py-6">Abhi tak koi VIP ad submission mojood nahi hai.</p>`;
+            countEl.innerText = "0 Pending";
+          }
+        });
+
+        // Listen to Withdrawals
+        const withdrawalsRef = ref(db, 'admin/withdrawals');
+        onValue(withdrawalsRef, (snapshot) => {
+          const tbody = document.getElementById('withdraw-table-body');
+          const countEl = document.getElementById('withdraw-count');
+          tbody.innerHTML = "";
+
+          if (!snapshot.exists()) {
+            countEl.innerText = "0 Requests";
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-stone-400 text-xs">Koi withdrawal request mojood nahi hai.</td></tr>`;
+            return;
+          }
+
+          let count = 0;
+          snapshot.forEach((childSnap) => {
+            count++;
+            const w = childSnap.val();
+            const key = childSnap.key;
+            const uid = w.uid;
+
+            let statusClass = "bg-amber-100 text-amber-800";
+            if (w.status === 'Approved') statusClass = "bg-emerald-100 text-emerald-800";
+            else if (w.status === 'Rejected') statusClass = "bg-red-100 text-red-800";
+
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
+            tr.innerHTML = `
+              <td class="py-3 px-3">
+                <span class="font-bold text-stone-800 block">${w.accountName || 'N/A'}</span>
+                <span class="text-[10px] text-stone-400">UID: ${uid ? uid.substring(0, 8) + '...' : 'N/A'}</span>
+              </td>
+              <td class="py-3 px-3">
+                <span class="font-semibold text-stone-700 block">${w.method || 'Method'}</span>
+                <span class="text-stone-500">${w.accountNumber || 'N/A'}</span>
+              </td>
+              <td class="py-3 px-3 font-bold text-sabii-darkgold text-sm">Rs ${w.amount || 0}</td>
+              <td class="py-3 px-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">
+                  ${w.status || 'Pending'}
+                </span>
+              </td>
+              <td class="py-3 px-3 text-right space-x-1">
+                <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Approved')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
+                  Approve
+                </button>
+                <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Rejected')" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
+                  Reject
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+          countEl.innerText = `${count} Requests`;
+        });
+      }
+    });
   </script>
 </body>
 </html>
