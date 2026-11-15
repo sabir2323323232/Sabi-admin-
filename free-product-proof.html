@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sabii - Admin VIP Ads Approval Panel</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sabii: {
+              gold: '#C5A059',
+              lightgold: '#E5D3B3',
+              darkgold: '#A37F38',
+              accent: '#D4AF37',
+              bg: '#FAF9F6',
+            }
+          },
+          fontFamily: {
+            brand: ['Cormorant Garamond', 'serif'],
+            sans: ['Montserrat', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FAF9F6;
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+    }
+
+    .sabii-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(197, 160, 89, 0.25);
+      box-shadow: 0 10px 30px rgba(197, 160, 89, 0.06);
+    }
+
+    .sabii-gold-text {
+      background: linear-gradient(135deg, #A37F38 0%, #C5A059 50%, #D4AF37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sabii-button {
+      background: linear-gradient(135deg, #C5A059 0%, #D4AF37 50%, #A37F38 100%);
+      background-size: 200% auto;
+      transition: all 0.3s ease;
+      color: #FFFFFF;
+    }
+
+    .sabii-button:hover {
+      background-position: right center;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(197, 160, 89, 0.35);
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #FAF9F6; }
+    ::-webkit-scrollbar-thumb { background: #C5A059; border-radius: 10px; }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen relative overflow-x-hidden text-stone-800">
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- Screenshot Preview Modal -->
+  <div id="screenshot-modal" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="sabii-card max-w-lg w-full rounded-3xl p-5 bg-white shadow-2xl relative text-center space-y-4">
+      <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3">
+        <h3 class="text-sm font-bold font-brand text-stone-800">User Task Screenshot Proof</h3>
+        <button onclick="closeScreenshotModal()" class="w-8 h-8 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="max-h-[65vh] overflow-auto rounded-2xl border border-stone-200 bg-stone-50 p-2">
+        <img id="modal-screenshot-img" src="" alt="Proof Screenshot" class="w-full object-contain rounded-xl">
+      </div>
+      <button onclick="closeScreenshotModal()" class="w-full py-2.5 rounded-xl sabii-button font-bold text-xs uppercase tracking-wider">
+        Band Karein
+      </button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-white/95 backdrop-blur-md border-b border-sabii-gold/20 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-sabii-gold/10 border border-sabii-gold/30 flex items-center justify-center text-sabii-darkgold">
+          <span class="font-brand font-bold text-lg sm:text-xl">A</span>
+        </div>
+        <div>
+          <span class="font-brand text-xl sm:text-3xl font-bold sabii-gold-text tracking-wider block leading-none">Admin Panel</span>
+          <span class="text-[8px] sm:text-[9px] text-stone-400 font-semibold uppercase tracking-widest">VIP Ads Submissions Approval</span>
+        </div>
+      </div>
+
+      <a href="dashboard.html" class="py-2 px-3.5 rounded-xl border border-sabii-gold/30 text-sabii-darkgold bg-sabii-gold/10 hover:bg-sabii-gold hover:text-white transition-all text-xs font-bold flex items-center gap-1.5">
+        <i class="fa-solid fa-arrow-left"></i> Dashboard
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Overview Banner -->
+    <div class="sabii-card rounded-3xl p-5 bg-gradient-to-r from-sabii-gold/15 via-white to-sabii-gold/5 border-sabii-gold/35 flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <h2 class="text-base sm:text-lg font-bold font-brand text-stone-800">VIP Ads Pending Submissions</h2>
+        <p class="text-xs text-stone-500">Yahan users ke upload kiye gaye screenshots check karein aur Approve/Reject karein.</p>
+      </div>
+      <div class="bg-white border border-sabii-gold/30 px-4 py-2 rounded-2xl text-center shadow-2xs">
+        <span class="text-[10px] text-stone-400 font-bold uppercase tracking-wider block">Total Pending</span>
+        <span id="pending-count" class="text-base font-bold sabii-gold-text">0</span>
+      </div>
+    </div>
+
+    <!-- Submissions Table / Cards List -->
+    <div class="sabii-card rounded-3xl p-5 bg-white space-y-4">
+      <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+        <h3 class="text-base font-bold font-brand text-stone-800 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-sabii-gold"></i> Submissions List
+        </h3>
+        <span class="text-[10px] text-stone-400 font-semibold">Realtime Admin Sync</span>
+      </div>
+
+      <div id="admin-submissions-container" class="space-y-3">
+        <div class="text-center py-10 text-stone-400 text-xs">
+          <i class="fa-solid fa-spinner fa-spin text-sabii-gold text-xl mb-2"></i>
+          <p>Loading submissions...</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="p-3 text-center border-t border-stone-100 bg-white text-[10px] text-stone-400 mt-auto">
+    &copy; Sabii Application. Admin Control Center.
+  </footer>
+
+  <!-- Firebase Admin Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, update, get, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0ufsDkglGIXuU8Tj3wg4-yexoI6oxBm4",
+      authDomain: "sabi-3ea84.firebaseapp.com",
+      projectId: "sabi-3ea84",
+      storageBucket: "sabi-3ea84.firebasestorage.app",
+      messagingSenderId: "124632688151",
+      appId: "1:124632688151:web:b4804b0cc7f301d30d9e52",
+      measurementId: "G-837LHT24Y3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // Toast Alert Function
+    window.showToast = function(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-stone-900 border-sabii-gold text-sabii-lightgold' : 'bg-red-900 border-red-500 text-white';
+      toast.className = `p-3.5 rounded-xl border ${bgColor} shadow-xl text-xs font-semibold flex items-center justify-between gap-3 pointer-events-auto transition-all duration-300`;
+      const icon = type === 'success' ? '<i class="fa-solid fa-circle-check text-sabii-gold text-base"></i>' : '<i class="fa-solid fa-triangle-exclamation text-red-400 text-base"></i>';
+      toast.innerHTML = `<div class="flex items-center gap-2">${icon}<span>${message}</span></div><button onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    };
+
+    window.openScreenshotModal = function(imgSrc) {
+      document.getElementById('modal-screenshot-img').src = imgSrc;
+      document.getElementById('screenshot-modal').classList.remove('hidden');
+    };
+
+    window.closeScreenshotModal = function() {
+      document.getElementById('screenshot-modal').classList.add('hidden');
+    };
+
+    // Admin Action: Approve Submission & Give Rs 5 to User
+    window.approveSubmission = async function(subId, userId, adNumber) {
+      try {
+        const subAdminRef = ref(db, `admin/vipAdsSubmissions/${subId}`);
+        const subUserRef = ref(db, `user_vip_ads_submissions/${userId}/${subId}`);
+        const userRef = ref(db, `users/${userId}`);
+
+        // Update Submission Status to Approved
+        await update(subAdminRef, { status: 'Approved', rewardCredited: true });
+        await update(subUserRef, { status: 'Approved', rewardCredited: true });
+
+        // Add Rs 5 to User Balance
+        const userSnap = await get(userRef);
+        if (userSnap.exists()) {
+          const currentBal = parseFloat(userSnap.val().balance || 0);
+          await update(userRef, { balance: currentBal + 5 });
+
+          // Add to user earnings history
+          const earnRef = push(ref(db, `user_earnings/${userId}`));
+          await set(earnRef, {
+            source: `VIP Direct Ad #${adNumber} Approved`,
+            amount: 5,
+            timestamp: new Date().toISOString()
+          });
+        }
+
+        showToast(`Ad #${adNumber} successfully approve ho gaya aur user ko Rs 5 mil gaye!`, "success");
+      } catch (err) {
+        console.error(err);
+        showToast("Approval me masla aya!", "error");
+      }
+    };
+
+    // Admin Action: Reject Submission
+    window.rejectSubmission = async function(subId, userId, adNumber) {
+      try {
+        await update(ref(db, `admin/vipAdsSubmissions/${subId}`), { status: 'Rejected' });
+        await update(ref(db, `user_vip_ads_submissions/${userId}/${subId}`), { status: 'Rejected' });
+        showToast(`Ad #${adNumber} reject kar diya gaya hai.`, "error");
+      } catch (err) {
+        console.error(err);
+        showToast("Rejection me masla aya!", "error");
+      }
+    };
+
+    // Load Submissions in Realtime
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        const subRef = ref(db, 'admin/vipAdsSubmissions');
+        onValue(subRef, async (snapshot) => {
+          const container = document.getElementById('admin-submissions-container');
+          container.innerHTML = "";
+
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            const keys = Object.keys(data).reverse();
+            let pendingCounter = 0;
+
+            for (const key of keys) {
+              const item = data[key];
+              if (item.status === 'Pending') pendingCounter++;
+
+              // Fetch User Email/Name for clarity
+              let userName = item.uid;
+              try {
+                const uSnap = await get(ref(db, `users/${item.uid}`));
+                if (uSnap.exists()) {
+                  userName = uSnap.val().name || uSnap.val().email || item.uid;
+                }
+              } catch(e) {}
+
+              const card = document.createElement('div');
+              card.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200 gap-4";
+              
+              let actionButtons = `
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <button onclick="approveSubmission('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-check"></i> Approve (Rs 5)
+                  </button>
+                  <button onclick="rejectSubmission('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-xmark"></i> Reject
+                  </button>
+                </div>
+              `;
+
+              if (item.status === 'Approved') {
+                actionButtons = `<span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Approved</span>`;
+              } else if (item.status === 'Rejected') {
+                actionButtons = `<span class="px-3 py-1 rounded-lg bg-red-100 text-red-800 text-xs font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> Rejected</span>`;
+              }
+
+              card.innerHTML = `
+                <div class="flex items-center gap-3">
+                  <div class="w-14 h-14 rounded-xl border border-sabii-gold/30 overflow-hidden bg-white shrink-0 cursor-pointer shadow-inner" onclick="openScreenshotModal('${item.photo}')">
+                    <img src="${item.photo}" alt="Proof" class="w-full h-full object-cover hover:scale-110 transition duration-300">
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-stone-800 text-xs">VIP Ad #${item.adNumber}</span>
+                      <span class="text-[10px] bg-sabii-gold/15 text-sabii-darkgold font-bold px-2 py-0.5 rounded">Rs 5 Reward</span>
+                    </div>
+                    <p class="text-[11px] text-stone-600 mt-0.5"><i class="fa-solid fa-user text-sabii-gold mr-1"></i> User: <span class="font-semibold">${userName}</span></p>
+                    <p class="text-[10px] text-stone-400"><i class="fa-solid fa-clock mr-1"></i> ${new Date(item.timestamp).toLocaleString()}</p>
+                  </div>
+                </div>
+                ${actionButtons}
+              `;
+              container.appendChild(card);
+            }
+
+            document.getElementById('pending-count').innerText = pendingCounter;
+
+          } else {
+            container.innerHTML = `<p class="text-center text-xs text-stone-400 py-6">Abhi tak koi submission mojood nahi hai.</p>`;
+            document.getElementById('pending-count').innerText = 0;
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
