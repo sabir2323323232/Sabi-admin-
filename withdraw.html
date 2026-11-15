@@ -117,11 +117,11 @@
   <!-- Main Area -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
-    <!-- Section 1: VIP Direct Ads (Rs 5) Submissions Approval -->
+    <!-- Section 1: VIP Direct Ads (Rs 5) Submissions Approval (Sirf Pending Ads show honge) -->
     <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
       <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3 flex-wrap gap-2">
         <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-bolt text-sabii-gold"></i> VIP Direct Ads Screenshot Submissions
+          <i class="fa-solid fa-bolt text-sabii-gold"></i> VIP Direct Ads Pending Submissions
         </h2>
         <span id="vip-pending-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
       </div>
@@ -134,11 +134,11 @@
       </div>
     </div>
 
-    <!-- Section 2: User Withdrawals Management -->
+    <!-- Section 2: User Withdrawals Management (Sirf Pending Withdrawals show honge) -->
     <div class="sabii-card rounded-3xl p-6 bg-white space-y-4 shadow-sm">
       <div class="flex items-center justify-between border-b border-sabii-gold/20 pb-3 flex-wrap gap-2">
         <h2 class="text-base font-bold font-brand text-stone-800 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-wallet text-sabii-gold"></i> All User Withdrawals
+          <i class="fa-solid fa-wallet text-sabii-gold"></i> Pending Withdrawal Requests
         </h2>
         <span id="withdraw-count" class="text-[10px] text-sabii-darkgold font-bold bg-sabii-gold/10 px-2.5 py-1 rounded-full border border-sabii-gold/20">Loading...</span>
       </div>
@@ -177,6 +177,7 @@
   <!-- Firebase Logic & Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, onValue, update, get, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -190,6 +191,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
 
     window.showToast = function(message, type = 'success') {
@@ -211,7 +213,7 @@
       document.getElementById('screenshot-modal').classList.add('hidden');
     };
 
-    // 1. VIP Ads Approval Logic
+    // 1. VIP Ads Approval Logic (Approve/Reject karte hi list se gayab ho jayega)
     window.approveVipAd = async function(subId, userId, adNumber) {
       try {
         const subAdminRef = ref(db, `admin/vipAdsSubmissions/${subId}`);
@@ -252,7 +254,7 @@
       }
     };
 
-    // 2. Withdraw Management Logic
+    // 2. Withdraw Management Logic (Approve/Reject karte hi table se gayab ho jayega)
     window.updateWithdrawStatus = async function(withdrawKey, uid, newStatus) {
       try {
         await update(ref(db, `admin/withdrawals/${withdrawKey}`), { status: newStatus });
@@ -266,9 +268,9 @@
       }
     };
 
-    // Realtime Listeners (No login redirection check)
-    window.addEventListener('DOMContentLoaded', () => {
-      // Listen to VIP Ads Submissions
+    // Realtime Listeners
+    document.addEventListener("DOMContentLoaded", () => {
+      // Listen to VIP Ads Submissions (Sirf Pending waly dikhenge)
       const vipSubRef = ref(db, 'admin/vipAdsSubmissions');
       onValue(vipSubRef, async (snapshot) => {
         const container = document.getElementById('admin-vip-submissions-container');
@@ -278,36 +280,29 @@
         if (snapshot.exists()) {
           const data = snapshot.val();
           const keys = Object.keys(data).reverse();
-          let pendingCount = 0;
+          let pendingList = [];
 
-          for (const key of keys) {
-            const item = data[key];
-            if (item.status === 'Pending') pendingCount++;
+          keys.forEach(key => {
+            if (data[key].status === 'Pending') {
+              pendingList.push({ key, ...data[key] });
+            }
+          });
 
-            let userName = item.uid || 'Unknown User';
+          countEl.innerText = `${pendingList.length} Pending`;
+
+          if (pendingList.length === 0) {
+            container.innerHTML = `<p class="text-center text-xs text-stone-400 py-6">Abhi tak koi pending VIP ad submission mojood nahi hai.</p>`;
+            return;
+          }
+
+          for (const item of pendingList) {
+            let userName = item.uid;
             try {
               const uSnap = await get(ref(db, `users/${item.uid}`));
               if (uSnap.exists()) {
                 userName = uSnap.val().name || uSnap.val().email || item.uid;
               }
             } catch(e) {}
-
-            let actionButtons = `
-              <div class="flex items-center gap-2 w-full sm:w-auto">
-                <button onclick="approveVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
-                  <i class="fa-solid fa-check"></i> Approve (Rs 5)
-                </button>
-                <button onclick="rejectVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
-                  <i class="fa-solid fa-xmark"></i> Reject
-                </button>
-              </div>
-            `;
-
-            if (item.status === 'Approved') {
-              actionButtons = `<span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Approved</span>`;
-            } else if (item.status === 'Rejected') {
-              actionButtons = `<span class="px-3 py-1 rounded-lg bg-red-100 text-red-800 text-xs font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> Rejected</span>`;
-            }
 
             const card = document.createElement('div');
             card.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200 gap-4";
@@ -325,18 +320,24 @@
                   <p class="text-[10px] text-stone-400"><i class="fa-solid fa-clock mr-1"></i> ${new Date(item.timestamp).toLocaleString()}</p>
                 </div>
               </div>
-              ${actionButtons}
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <button onclick="approveVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-check"></i> Approve (Rs 5)
+                </button>
+                <button onclick="rejectVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-xmark"></i> Reject
+                </button>
+              </div>
             `;
             container.appendChild(card);
           }
-          countEl.innerText = `${pendingCount} Pending`;
         } else {
           container.innerHTML = `<p class="text-center text-xs text-stone-400 py-6">Abhi tak koi VIP ad submission mojood nahi hai.</p>`;
           countEl.innerText = "0 Pending";
         }
       });
 
-      // Listen to Withdrawals
+      // Listen to Withdrawals (Sirf Pending waly dikhenge)
       const withdrawalsRef = ref(db, 'admin/withdrawals');
       onValue(withdrawalsRef, (snapshot) => {
         const tbody = document.getElementById('withdraw-table-body');
@@ -349,16 +350,24 @@
           return;
         }
 
-        let count = 0;
+        let pendingWithdrawals = [];
         snapshot.forEach((childSnap) => {
-          count++;
           const w = childSnap.val();
-          const key = childSnap.key;
-          const uid = w.uid;
+          if (!w.status || w.status === 'Pending') {
+            pendingWithdrawals.push({ key: childSnap.key, ...w });
+          }
+        });
 
-          let statusClass = "bg-amber-100 text-amber-800";
-          if (w.status === 'Approved') statusClass = "bg-emerald-100 text-emerald-800";
-          else if (w.status === 'Rejected') statusClass = "bg-red-100 text-red-800";
+        countEl.innerText = `${pendingWithdrawals.length} Requests`;
+
+        if (pendingWithdrawals.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-stone-400 text-xs">Koi pending withdrawal request mojood nahi hai.</td></tr>`;
+          return;
+        }
+
+        pendingWithdrawals.forEach((w) => {
+          const key = w.key;
+          const uid = w.uid;
 
           const tr = document.createElement('tr');
           tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
@@ -373,8 +382,8 @@
             </td>
             <td class="py-3 px-3 font-bold text-sabii-darkgold text-sm">Rs ${w.amount || 0}</td>
             <td class="py-3 px-3">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">
-                ${w.status || 'Pending'}
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                Pending
               </span>
             </td>
             <td class="py-3 px-3 text-right space-x-1">
@@ -388,7 +397,6 @@
           `;
           tbody.appendChild(tr);
         });
-        countEl.innerText = `${count} Requests`;
       });
     });
   </script>
