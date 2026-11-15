@@ -177,7 +177,6 @@
   <!-- Firebase Logic & Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, onValue, update, get, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -191,7 +190,6 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getDatabase(app);
 
     window.showToast = function(message, type = 'success') {
@@ -268,134 +266,130 @@
       }
     };
 
-    // Auth & Realtime Listeners
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        // Listen to VIP Ads Submissions
-        const vipSubRef = ref(db, 'admin/vipAdsSubmissions');
-        onValue(vipSubRef, async (snapshot) => {
-          const container = document.getElementById('admin-vip-submissions-container');
-          const countEl = document.getElementById('vip-pending-count');
-          container.innerHTML = "";
+    // Realtime Listeners (No login redirection check)
+    window.addEventListener('DOMContentLoaded', () => {
+      // Listen to VIP Ads Submissions
+      const vipSubRef = ref(db, 'admin/vipAdsSubmissions');
+      onValue(vipSubRef, async (snapshot) => {
+        const container = document.getElementById('admin-vip-submissions-container');
+        const countEl = document.getElementById('vip-pending-count');
+        container.innerHTML = "";
 
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            const keys = Object.keys(data).reverse();
-            let pendingCount = 0;
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const keys = Object.keys(data).reverse();
+          let pendingCount = 0;
 
-            for (const key of keys) {
-              const item = data[key];
-              if (item.status === 'Pending') pendingCount++;
+          for (const key of keys) {
+            const item = data[key];
+            if (item.status === 'Pending') pendingCount++;
 
-              let userName = item.uid;
-              try {
-                const uSnap = await get(ref(db, `users/${item.uid}`));
-                if (uSnap.exists()) {
-                  userName = uSnap.val().name || uSnap.val().email || item.uid;
-                }
-              } catch(e) {}
-
-              let actionButtons = `
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                  <button onclick="approveVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-check"></i> Approve (Rs 5)
-                  </button>
-                  <button onclick="rejectVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-xmark"></i> Reject
-                  </button>
-                </div>
-              `;
-
-              if (item.status === 'Approved') {
-                actionButtons = `<span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Approved</span>`;
-              } else if (item.status === 'Rejected') {
-                actionButtons = `<span class="px-3 py-1 rounded-lg bg-red-100 text-red-800 text-xs font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> Rejected</span>`;
+            let userName = item.uid || 'Unknown User';
+            try {
+              const uSnap = await get(ref(db, `users/${item.uid}`));
+              if (uSnap.exists()) {
+                userName = uSnap.val().name || uSnap.val().email || item.uid;
               }
+            } catch(e) {}
 
-              const card = document.createElement('div');
-              card.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200 gap-4";
-              card.innerHTML = `
-                <div class="flex items-center gap-3">
-                  <div class="w-14 h-14 rounded-xl border border-sabii-gold/30 overflow-hidden bg-white shrink-0 cursor-pointer shadow-inner" onclick="openScreenshotModal('${item.photo}')">
-                    <img src="${item.photo}" alt="Proof" class="w-full h-full object-cover hover:scale-110 transition duration-300">
-                  </div>
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <span class="font-bold text-stone-800 text-xs">VIP Ad #${item.adNumber}</span>
-                      <span class="text-[10px] bg-sabii-gold/15 text-sabii-darkgold font-bold px-2 py-0.5 rounded">Rs 5 Reward</span>
-                    </div>
-                    <p class="text-[11px] text-stone-600 mt-0.5"><i class="fa-solid fa-user text-sabii-gold mr-1"></i> User: <span class="font-semibold">${userName}</span></p>
-                    <p class="text-[10px] text-stone-400"><i class="fa-solid fa-clock mr-1"></i> ${new Date(item.timestamp).toLocaleString()}</p>
-                  </div>
-                </div>
-                ${actionButtons}
-              `;
-              container.appendChild(card);
-            }
-            countEl.innerText = `${pendingCount} Pending`;
-          } else {
-            container.innerHTML = `<p class="text-center text-xs text-stone-400 py-6">Abhi tak koi VIP ad submission mojood nahi hai.</p>`;
-            countEl.innerText = "0 Pending";
-          }
-        });
-
-        // Listen to Withdrawals
-        const withdrawalsRef = ref(db, 'admin/withdrawals');
-        onValue(withdrawalsRef, (snapshot) => {
-          const tbody = document.getElementById('withdraw-table-body');
-          const countEl = document.getElementById('withdraw-count');
-          tbody.innerHTML = "";
-
-          if (!snapshot.exists()) {
-            countEl.innerText = "0 Requests";
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-stone-400 text-xs">Koi withdrawal request mojood nahi hai.</td></tr>`;
-            return;
-          }
-
-          let count = 0;
-          snapshot.forEach((childSnap) => {
-            count++;
-            const w = childSnap.val();
-            const key = childSnap.key;
-            const uid = w.uid;
-
-            let statusClass = "bg-amber-100 text-amber-800";
-            if (w.status === 'Approved') statusClass = "bg-emerald-100 text-emerald-800";
-            else if (w.status === 'Rejected') statusClass = "bg-red-100 text-red-800";
-
-            const tr = document.createElement('tr');
-            tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
-            tr.innerHTML = `
-              <td class="py-3 px-3">
-                <span class="font-bold text-stone-800 block">${w.accountName || 'N/A'}</span>
-                <span class="text-[10px] text-stone-400">UID: ${uid ? uid.substring(0, 8) + '...' : 'N/A'}</span>
-              </td>
-              <td class="py-3 px-3">
-                <span class="font-semibold text-stone-700 block">${w.method || 'Method'}</span>
-                <span class="text-stone-500">${w.accountNumber || 'N/A'}</span>
-              </td>
-              <td class="py-3 px-3 font-bold text-sabii-darkgold text-sm">Rs ${w.amount || 0}</td>
-              <td class="py-3 px-3">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">
-                  ${w.status || 'Pending'}
-                </span>
-              </td>
-              <td class="py-3 px-3 text-right space-x-1">
-                <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Approved')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
-                  Approve
+            let actionButtons = `
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <button onclick="approveVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-check"></i> Approve (Rs 5)
                 </button>
-                <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Rejected')" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
-                  Reject
+                <button onclick="rejectVipAd('${item.id}', '${item.uid}', ${item.adNumber})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-xmark"></i> Reject
                 </button>
-              </td>
+              </div>
             `;
-            tbody.appendChild(tr);
-          });
-          countEl.innerText = `${count} Requests`;
+
+            if (item.status === 'Approved') {
+              actionButtons = `<span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Approved</span>`;
+            } else if (item.status === 'Rejected') {
+              actionButtons = `<span class="px-3 py-1 rounded-lg bg-red-100 text-red-800 text-xs font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> Rejected</span>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200 gap-4";
+            card.innerHTML = `
+              <div class="flex items-center gap-3">
+                <div class="w-14 h-14 rounded-xl border border-sabii-gold/30 overflow-hidden bg-white shrink-0 cursor-pointer shadow-inner" onclick="openScreenshotModal('${item.photo}')">
+                  <img src="${item.photo}" alt="Proof" class="w-full h-full object-cover hover:scale-110 transition duration-300">
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-stone-800 text-xs">VIP Ad #${item.adNumber}</span>
+                    <span class="text-[10px] bg-sabii-gold/15 text-sabii-darkgold font-bold px-2 py-0.5 rounded">Rs 5 Reward</span>
+                  </div>
+                  <p class="text-[11px] text-stone-600 mt-0.5"><i class="fa-solid fa-user text-sabii-gold mr-1"></i> User: <span class="font-semibold">${userName}</span></p>
+                  <p class="text-[10px] text-stone-400"><i class="fa-solid fa-clock mr-1"></i> ${new Date(item.timestamp).toLocaleString()}</p>
+                </div>
+              </div>
+              ${actionButtons}
+            `;
+            container.appendChild(card);
+          }
+          countEl.innerText = `${pendingCount} Pending`;
+        } else {
+          container.innerHTML = `<p class="text-center text-xs text-stone-400 py-6">Abhi tak koi VIP ad submission mojood nahi hai.</p>`;
+          countEl.innerText = "0 Pending";
+        }
+      });
+
+      // Listen to Withdrawals
+      const withdrawalsRef = ref(db, 'admin/withdrawals');
+      onValue(withdrawalsRef, (snapshot) => {
+        const tbody = document.getElementById('withdraw-table-body');
+        const countEl = document.getElementById('withdraw-count');
+        tbody.innerHTML = "";
+
+        if (!snapshot.exists()) {
+          countEl.innerText = "0 Requests";
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-stone-400 text-xs">Koi withdrawal request mojood nahi hai.</td></tr>`;
+          return;
+        }
+
+        let count = 0;
+        snapshot.forEach((childSnap) => {
+          count++;
+          const w = childSnap.val();
+          const key = childSnap.key;
+          const uid = w.uid;
+
+          let statusClass = "bg-amber-100 text-amber-800";
+          if (w.status === 'Approved') statusClass = "bg-emerald-100 text-emerald-800";
+          else if (w.status === 'Rejected') statusClass = "bg-red-100 text-red-800";
+
+          const tr = document.createElement('tr');
+          tr.className = "border-b border-stone-100 hover:bg-stone-50 transition";
+          tr.innerHTML = `
+            <td class="py-3 px-3">
+              <span class="font-bold text-stone-800 block">${w.accountName || 'N/A'}</span>
+              <span class="text-[10px] text-stone-400">UID: ${uid ? uid.substring(0, 8) + '...' : 'N/A'}</span>
+            </td>
+            <td class="py-3 px-3">
+              <span class="font-semibold text-stone-700 block">${w.method || 'Method'}</span>
+              <span class="text-stone-500">${w.accountNumber || 'N/A'}</span>
+            </td>
+            <td class="py-3 px-3 font-bold text-sabii-darkgold text-sm">Rs ${w.amount || 0}</td>
+            <td class="py-3 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusClass}">
+                ${w.status || 'Pending'}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-right space-x-1">
+              <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Approved')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition">
+                Approve
+              </button>
+              <button onclick="updateWithdrawStatus('${key}', '${uid}', 'Rejected')" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
+                Reject
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
         });
-      }
+        countEl.innerText = `${count} Requests`;
+      });
     });
   </script>
 </body>
